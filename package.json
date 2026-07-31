@@ -1,0 +1,20 @@
+{
+  "name": "javdbviewed-docs",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "license": "AGPL-3.0-only",
+  "description": "JavdBviewed documentation site",
+  "scripts": {
+    "dev": "vitepress dev . --host 127.0.0.1 --port 5174",
+    "build": "vitepress build .",
+    "preview": "vitepress preview .",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitepress": "^1.6.4",
+    "vitepress-plugin-mermaid": "^2.0.17",
+    "vitest": "^2.1.9"
+  },
+  "packageManager": "pnpm@10.17.0"
+}
