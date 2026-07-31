@@ -24,7 +24,7 @@ export default withMermaid(defineConfig({
       { text: '使用教程', link: '/guide/' },
       { text: '版本发布', link: '/reference/changelog' },
       { text: '开发文档', link: '/developer/' },
-      { text: 'GitHub', link: 'https://github.com/lmixture/JavdBviewed' }
+      { text: 'GitHub', link: 'https://github.com/JavdBviewed/JavdBviewed' }
     ],
     sidebar: {
       '/download/': [
@@ -175,7 +175,7 @@ export default withMermaid(defineConfig({
       next: '下一篇'
     },
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/lmixture/JavdBviewed' }
+      { icon: 'github', link: 'https://github.com/JavdBviewed/JavdBviewed' }
     ],
     lastUpdated: {
       text: '最后更新'

@@ -31,7 +31,7 @@ Cloud 只提供容器镜像，不提供桌面安装包，也不会自行替换�
 ```yaml
 services:
   cloud:
-    image: ${CLOUD_IMAGE_NAME:-ghcr.io/lmixture/javdbviewed-cloud:1.0.0}
+    image: ${CLOUD_IMAGE_NAME:-ghcr.io/javdbviewed/javdbviewed-cloud:1.0.0}
     container_name: javdbviewed-cloud
     restart: unless-stopped
     ports:
@@ -63,7 +63,7 @@ services:
 同目录创建 `.env`。`CLOUD_JWT_SECRET` 必须使用至少 16 位的强随机值；可以用 `openssl rand -hex 32` 生成：
 
 ```dotenv
-CLOUD_IMAGE_NAME=ghcr.io/lmixture/javdbviewed-cloud:1.0.0
+CLOUD_IMAGE_NAME=ghcr.io/javdbviewed/javdbviewed-cloud:1.0.0
 CLOUD_JWT_SECRET=请替换为强随机值
 
 # 可选：至少 16 位且包含大小写字母、数字、符号中的三类。

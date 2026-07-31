@@ -51,7 +51,7 @@ describe('download center release data', () => {
       releaseStatus: 'preparing',
       latest: {
         version: '1.0.0',
-        image: 'ghcr.io/lmixture/javdbviewed-cloud:1.0.0',
+        image: 'ghcr.io/javdbviewed/javdbviewed-cloud:1.0.0',
         releaseNotesUrl: 'https://github.com/JavdBviewed/JavdBviewed-release/blob/main/releases/cloud/v1.0.0.md',
       },
     }

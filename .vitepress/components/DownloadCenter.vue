@@ -8,17 +8,17 @@ import {
   type ExtensionRelease,
 } from './downloadCenter'
 
-const EXTENSION_API_URL = 'https://api.github.com/repos/lmixture/JavdBviewed/releases/latest'
-const EXTENSION_RELEASES_URL = 'https://github.com/lmixture/JavdBviewed/releases'
-const CLOUD_MANIFEST_URL = 'https://raw.githubusercontent.com/lmixture/JavdBviewed-release/main/manifests/cloud/stable.json'
+const EXTENSION_API_URL = 'https://api.github.com/repos/JavdBviewed/JavdBviewed/releases/latest'
+const EXTENSION_RELEASES_URL = 'https://github.com/JavdBviewed/JavdBviewed/releases'
+const CLOUD_MANIFEST_URL = 'https://raw.githubusercontent.com/JavdBviewed/JavdBviewed-release/main/manifests/cloud/stable.json'
 
 const extension = ref<ExtensionRelease | null>(null)
 const extensionState = ref<'loading' | 'ready' | 'fallback'>('loading')
 const cloud = ref<CloudRelease>({
   version: '1.0.0',
   releaseStatus: 'preparing',
-  image: 'ghcr.io/lmixture/javdbviewed-cloud:1.0.0',
-  releaseNotesUrl: 'https://github.com/lmixture/JavdBviewed-release/blob/main/releases/cloud/v1.0.0.md',
+  image: 'ghcr.io/javdbviewed/javdbviewed-cloud:1.0.0',
+  releaseNotesUrl: 'https://github.com/JavdBviewed/JavdBviewed-release/blob/main/releases/cloud/v1.0.0.md',
 })
 const cloudState = ref<'loading' | 'ready' | 'fallback'>('loading')
 
