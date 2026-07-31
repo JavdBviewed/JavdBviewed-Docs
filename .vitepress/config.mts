@@ -3,6 +3,7 @@ import { withMermaid } from 'vitepress-plugin-mermaid'
 
 export default withMermaid(defineConfig({
   lang: 'zh-CN',
+  site: 'https://docs.we-together.club',
   title: 'JavdBviewed 文档中心',
   description: 'JavdBviewed 的使用文档、功能说明、隐私政策与开发参考',
   cleanUrls: true,
