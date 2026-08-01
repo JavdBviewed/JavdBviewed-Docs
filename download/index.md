@@ -31,7 +31,7 @@ Cloud 只提供容器镜像，不提供桌面安装包，也不会自行替换�
 ```yaml
 services:
   cloud:
-    image: ${CLOUD_IMAGE_NAME:-ghcr.io/javdbviewed/javdbviewed-cloud:1.0.0}
+    image: ${CLOUD_IMAGE_NAME:-ghcr.io/javdbviewed/javdbviewed-cloud:latest}
     container_name: javdbviewed-cloud
     restart: unless-stopped
     ports:
@@ -42,6 +42,7 @@ services:
       CLOUD_ADMIN_USER: admin
       CLOUD_JWT_SECRET: ${CLOUD_JWT_SECRET}
       CLOUD_ADMIN_PASSWORD: ${CLOUD_ADMIN_PASSWORD:-}
+      CLOUD_CORS_ORIGINS: ${CLOUD_CORS_ORIGINS:-}
       CLOUD_UPDATE_MANIFEST_MIRRORS: ${CLOUD_UPDATE_MANIFEST_MIRRORS:-}
     volumes:
       - ./data:/data
@@ -63,7 +64,7 @@ services:
 同目录创建 `.env`。`CLOUD_JWT_SECRET` 必须使用至少 16 位的强随机值；可以用 `openssl rand -hex 32` 生成：
 
 ```dotenv
-CLOUD_IMAGE_NAME=ghcr.io/javdbviewed/javdbviewed-cloud:1.0.0
+CLOUD_IMAGE_NAME=ghcr.io/javdbviewed/javdbviewed-cloud:latest
 CLOUD_JWT_SECRET=请替换为强随机值
 
 # 可选：至少 16 位且包含大小写字母、数字、符号中的三类。
@@ -74,6 +75,18 @@ CLOUD_ADMIN_PASSWORD=
 # 多个地址使用英文逗号分隔。
 CLOUD_UPDATE_MANIFEST_MIRRORS=
 ```
+
+### 容器环境变量
+
+| 变量 | 是否需要填写 | 说明 |
+| --- | --- | --- |
+| `CLOUD_IMAGE_NAME` | 可选 | 默认 `ghcr.io/javdbviewed/javdbviewed-cloud:latest`。日常执行 `docker compose pull` 会获取最新正式镜像；回滚时改为已验证的固定版本 tag。 |
+| `CLOUD_JWT_SECRET` | 必填 | 至少 16 位的强随机值，用于签发登录与设备令牌。首次部署前生成，后续不要随意更换。 |
+| `CLOUD_ADMIN_PASSWORD` | 可选 | 设置后作为首次管理员密码。留空时日志仅在首次启动输出一次临时密码；管理员账号固定为 `admin`。 |
+| `CLOUD_CORS_ORIGINS` | 可选 | 限制允许访问服务的浏览器 Origin，多个值用英文逗号分隔。扩展接入可填写 `chrome-extension://扩展ID`。 |
+| `CLOUD_UPDATE_MANIFEST_MIRRORS` | 可选 | 更新清单镜像地址，多个地址用英文逗号分隔；只影响版本检查，不影响 GHCR 镜像拉取。 |
+
+`CLOUD_ADDR`、`CLOUD_DATA_DIR` 与 `CLOUD_ADMIN_USER` 已由 Compose 固定为容器内监听 `:8080`、数据目录 `/data` 和管理员 `admin`，通常不需要修改。不要设置 `CLOUD_ALLOW_INSECURE_DEV`，它仅用于本地开发，会降低生产环境的配置门槛。
 
 ### 2. 拉取并启动
 
@@ -105,9 +118,8 @@ curl -fsS http://127.0.0.1:18080/version
 ### 4. 升级
 
 1. 在管理台创建快照，并额外备份部署目录下的 `data/`。
-2. 确认 stable 清单已标记为 `released`，记录目标镜像 tag 和 digest。
-3. 修改 `.env` 中的 `CLOUD_IMAGE_NAME`。
-4. 拉取镜像并重新创建容器，然后核对健康、版本和管理员登录。
+2. 确认 stable 清单已标记为 `released`，记录目标镜像 digest。
+3. 保持 `CLOUD_IMAGE_NAME` 为 `:latest`，拉取镜像并重新创建容器，然后核对健康、版本和管理员登录。
 
 ```bash
 docker compose pull cloud
@@ -119,7 +131,7 @@ docker compose logs --tail 100 cloud
 
 ### 5. 回滚
 
-把 `.env` 中的 `CLOUD_IMAGE_NAME` 改回上一个已验证的版本 tag，再执行：
+把 `.env` 中的 `CLOUD_IMAGE_NAME` 从 `:latest` 改为上一个已验证的固定版本 tag，再执行：
 
 ```bash
 docker compose pull cloud
