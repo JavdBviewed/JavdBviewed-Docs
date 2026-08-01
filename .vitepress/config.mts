@@ -181,7 +181,7 @@ export default withMermaid(defineConfig({
       text: '最后更新'
     },
     footer: {
-      message: '使用 VitePress 构建',
+      message: 'JavdBviewed 文档中心',
       copyright: 'Copyright © 2026 lmixture'
     }
   }
