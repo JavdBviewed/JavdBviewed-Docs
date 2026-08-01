@@ -31,4 +31,4 @@ Cloud 内的账号、设备、同步资产、密钥库、快照和运维日志�
 
 Server 的当前默认配置为原始遥测事件保留 365 天，请求 IP 相关运营字段保留 90 天。Cloud 实例健康上报不记录 IP、User-Agent 或地理位置；其独立保留与聚合策略会在功能真正发布时同步公布。
 
-有关自部署 Cloud 的完整边界，见 [Cloud 隐私政策](https://github.com/JavdBviewed/JavdBviewed-Cloud/blob/main/PRIVACY_POLICY.md) 与 [Cloud 上报说明](https://github.com/JavdBviewed/JavdBviewed-Cloud/blob/main/docs/TELEMETRY.md)。
+自部署 Cloud 当前不会向作者 Server 发送实例健康上报。Cloud 的部署、网络暴露、备份和升级注意事项请查看[Cloud 部署指南](/download/#cloud-deploy)；如未来启用实例健康上报，会在本文和产品设置中提前说明字段、开关与保留规则。
