@@ -30,7 +30,7 @@
 
 ## 安装 2.0.0
 
-1. 从 [JavdBviewed Release](https://github.com/JavdBviewed/JavdBviewed-release/releases) 下载 2.0.0 ZIP。
+1. 从 [JavdBviewed 扩展 Release](https://github.com/JavdBviewed/JavdBviewed/releases) 下载 2.0.0 ZIP。
 2. 使用安装包密码 `我已备份数据` 解压到一个固定目录，不要直接从压缩包内加载；如果系统自带工具无法解压密码 ZIP，请使用 7-Zip、Bandizip 等工具。
 3. 打开 Chrome 或 Edge 的扩展管理页：`chrome://extensions/`。
 4. 开启“开发者模式”，选择“加载已解压的扩展程序”。
@@ -119,4 +119,4 @@ WebDAV 恢复默认建议开启“恢复前自动备份”。这样即使选错�
 - [WebDAV 同步](/guide/webdav-sync)
 - [同步设置](/guide/settings-sync)
 - [下载与更新](/download/)
-- [2.0.0 Release 说明](https://github.com/JavdBviewed/JavdBviewed-release/blob/main/releases/extension/v2.0.0.md)
+- [2.0.0 Release 说明](https://github.com/JavdBviewed/JavdBviewed/releases/tag/v2.0.0)
