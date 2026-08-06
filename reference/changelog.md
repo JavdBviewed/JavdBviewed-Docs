@@ -2,22 +2,24 @@
 
 本页将 GitHub Releases 的版本历史整理为站内可浏览文档，便于查看最近更新节奏、当前版本与下载入口。
 
-> 完整发布记录仍以 GitHub Releases 为准：<https://github.com/JavdBviewed/JavdBviewed/releases>
+> 完整发布记录仍以 GitHub Releases 为准：<https://github.com/JavdBviewed/JavdBviewed-release/releases>
 
 ## 当前版本
 
-- 文档整理时间：2026-05-05
-- 当前代码版本：`1.19.1`
-- 最近标签版本：`v1.19.1.5`
-- 发布主页：<https://github.com/JavdBviewed/JavdBviewed/releases>
+- 文档整理时间：2026-08-06
+- 当前扩展版本：`2.0.0`
+- 发布形式：GitHub Release ZIP，自托管安装，不提交 Chrome Web Store
+- 发布主页：<https://github.com/JavdBviewed/JavdBviewed-release/releases>
 
 ## 如何更新
 
-1. 打开 GitHub Releases 页面
+1. 打开 [JavdBviewed Release](https://github.com/JavdBviewed/JavdBviewed-release/releases)
 2. 下载最新的 `javdb-extension-v*.zip`
 3. 解压到固定目录
 4. 进入 `chrome://extensions/` 或 `edge://extensions/`
-5. 重新加载已解压扩展
+5. 加载或重新加载已解压扩展
+
+从 1.x 升级到 2.0.0 前，必须先导出旧版数据，再在新扩展中导入。完整流程见 [2.0.0 升级与数据迁移](/guide/upgrade-v2)。
 
 ## 版本说明
 
@@ -26,6 +28,12 @@
 - 从仓库标签观察，版本格式通常为 `主版本.次版本.修订号.构建号`
 
 ## 最近发布记录
+
+### 2026-08
+
+| 日期 | 版本 | 说明 |
+| --- | --- | --- |
+| 2026-08-06 | `v2.0.0` | 固定扩展 ID 的自托管主版本，增加跨 ID 数据迁移、备份恢复与 Cloud/媒体库能力 |
 
 ### 2026-05
 

@@ -15,7 +15,7 @@ import DownloadCenter from '../.vitepress/components/DownloadCenter.vue'
 3. 开启“开发者模式”，选择“加载已解压的扩展程序”，然后选中解压目录。
 4. 后续更新时下载新的 ZIP、替换目录内容，再在扩展管理页重新加载。
 
-下载卡片优先读取 GitHub Latest Release 并直达扩展 ZIP。GitHub API 暂时不可用时，入口会自动回退到 [Releases 页面](https://github.com/JavdBviewed/JavdBviewed/releases)。
+下载卡片会从正式发布仓库的 Release 列表中寻找包含扩展 ZIP 的版本，并直达下载。GitHub API 暂时不可用时，入口会自动回退到 [Releases 页面](https://github.com/JavdBviewed/JavdBviewed-release/releases)。
 
 ## Cloud 部署指南 {#cloud-deploy}
 

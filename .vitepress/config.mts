@@ -21,6 +21,7 @@ export default withMermaid(defineConfig({
     nav: [
       { text: '首页', link: '/' },
       { text: '快速开始', link: '/guide/quick-start' },
+      { text: '升级 2.0.0', link: '/guide/upgrade-v2' },
       { text: '下载', link: '/download/' },
       { text: '使用教程', link: '/guide/' },
       { text: '版本发布', link: '/reference/changelog' },
@@ -42,6 +43,7 @@ export default withMermaid(defineConfig({
           items: [
             { text: '教程总览', link: '/guide/' },
             { text: '快速开始', link: '/guide/quick-start' },
+            { text: '升级与数据迁移', link: '/guide/upgrade-v2' },
             { text: '界面介绍', link: '/guide/interface' },
             { text: '常见问题', link: '/guide/faq' }
           ]
@@ -124,6 +126,13 @@ export default withMermaid(defineConfig({
                 { text: '同步设置', link: '/guide/settings-sync' },
                 { text: '115 网盘集成', link: '/guide/115-drive' },
                 { text: 'Emby 集成', link: '/guide/emby-integration' }
+              ]
+            },
+            {
+              text: '版本升级',
+              collapsed: false,
+              items: [
+                { text: '2.0.0 升级与数据迁移', link: '/guide/upgrade-v2' }
               ]
             },
             {

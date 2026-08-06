@@ -15,7 +15,7 @@
 
 ### 方式一：下载预编译版本
 
-1. 打开 [GitHub Releases](https://github.com/JavdBviewed/JavdBviewed/releases)
+1. 打开 [JavdBviewed Release](https://github.com/JavdBviewed/JavdBviewed-release/releases)
 2. 下载最新的 `javdb-extension-v*.zip`
 3. 解压到本地固定目录
 4. 打开浏览器扩展管理页
@@ -100,6 +100,7 @@
 ### 第三步：按需要配置扩展能力
 
 - 如果你重视备份和多设备一致性：先看 [WebDAV 同步](/guide/webdav-sync)
+- 如果你正在从 1.x 升级到 2.0.0：先看 [2.0.0 升级与数据迁移](/guide/upgrade-v2)，不要直接卸载旧版扩展
 - 如果你需要把磁力任务送去 115：先看 [115 网盘集成](/guide/115-drive)
 - 如果你更关注页面体验：先看 [页面增强](/guide/page-enhancement)
 - 如果你希望统一整理记录：先看 [数据管理](/guide/data-management)

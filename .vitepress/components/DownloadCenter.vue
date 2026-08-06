@@ -8,8 +8,8 @@ import {
   type ExtensionRelease,
 } from './downloadCenter'
 
-const EXTENSION_API_URL = 'https://api.github.com/repos/JavdBviewed/JavdBviewed/releases/latest'
-const EXTENSION_RELEASES_URL = 'https://github.com/JavdBviewed/JavdBviewed/releases'
+const EXTENSION_API_URL = 'https://api.github.com/repos/JavdBviewed/JavdBviewed-release/releases?per_page=30'
+const EXTENSION_RELEASES_URL = 'https://github.com/JavdBviewed/JavdBviewed-release/releases'
 const CLOUD_MANIFEST_URL = 'https://raw.githubusercontent.com/JavdBviewed/JavdBviewed-release/main/manifests/cloud/stable.json'
 
 const extension = ref<ExtensionRelease | null>(null)
@@ -29,7 +29,9 @@ async function loadExtensionRelease(): Promise<void> {
     })
     if (!response.ok) throw new Error(`GitHub API returned ${response.status}`)
 
-    const parsed = parseExtensionRelease(await response.json())
+    const payload = await response.json()
+    const releases = Array.isArray(payload) ? payload : [payload]
+    const parsed = releases.map(parseExtensionRelease).find((release): release is ExtensionRelease => release !== null)
     if (!parsed) throw new Error('No extension ZIP found in latest release')
 
     extension.value = parsed
