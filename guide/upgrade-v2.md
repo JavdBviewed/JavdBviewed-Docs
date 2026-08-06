@@ -26,12 +26,12 @@
 4. 将下载的 `javdb-extension-backup-日期时间.zip` 保存到管理面板以外的位置。这是本次升级的主备份；历史版本的 JSON 备份仍可导入。
 5. 如果已经配置 WebDAV，再执行一次“立即上传至云端”。WebDAV 会额外保存一个 ZIP 备份，作为本地文件之外的第二份恢复点。
 
-本地 ZIP 和 WebDAV 备份都可能包含连接配置中的敏感信息，例如 Cloud 账号密码、Emby/Jellyfin API Key 或访问令牌。ZIP 只是压缩，不是加密容器；历史 JSON 备份也是明文文件。请像保管密码一样保管备份文件，不要上传到公开仓库、公开网盘或 Issue。
+本地 ZIP 和 WebDAV 备份都可能包含连接配置中的敏感信息，例如 Cloud 账号密码、Emby/Jellyfin API Key 或访问令牌。备份 ZIP 是数据备份格式，不等同于本次 Release 安装包的解压密码，也不应把备份密码写入公开文档。请像保管密码一样保管备份文件，不要上传到公开仓库、公开网盘或 Issue。
 
 ## 安装 2.0.0
 
 1. 从 [JavdBviewed Release](https://github.com/JavdBviewed/JavdBviewed-release/releases) 下载 2.0.0 ZIP。
-2. 解压到一个固定目录，不要直接从压缩包内加载。
+2. 使用安装包密码 `我已备份数据` 解压到一个固定目录，不要直接从压缩包内加载；如果系统自带工具无法解压密码 ZIP，请使用 7-Zip、Bandizip 等工具。
 3. 打开 Chrome 或 Edge 的扩展管理页：`chrome://extensions/`。
 4. 开启“开发者模式”，选择“加载已解压的扩展程序”。
 5. 选择解压后的 2.0.0 目录，确认新扩展可以打开管理面板。
