@@ -31,7 +31,7 @@
 ## 安装 2.0.0
 
 1. 从 [JavdBviewed 扩展 Release](https://github.com/JavdBviewed/JavdBviewed/releases) 下载 2.0.0 ZIP。
-2. 使用安装包密码 `我已备份数据` 解压到一个固定目录，不要直接从压缩包内加载；如果系统自带工具无法解压密码 ZIP，请使用 7-Zip、Bandizip 等工具。
+2. 使用安装包密码 `I_have_backed_up_my_data` 解压到一个固定目录，不要直接从压缩包内加载；如果系统自带工具无法解压密码 ZIP，请使用 7-Zip、Bandizip 等工具。
 3. 打开 Chrome 或 Edge 的扩展管理页：`chrome://extensions/`。
 4. 开启“开发者模式”，选择“加载已解压的扩展程序”。
 5. 选择解压后的 2.0.0 目录，确认新扩展可以打开管理面板。
