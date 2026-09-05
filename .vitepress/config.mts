@@ -25,6 +25,7 @@ export default withMermaid(defineConfig({
       { text: '使用教程', link: '/guide/' },
       { text: '版本发布', link: '/reference/changelog' },
       { text: '开发文档', link: '/developer/' },
+      { text: 'JavScribe 字幕', link: '/javscribe/' },
       { text: 'GitHub', link: 'https://github.com/JavdBviewed/JavdBviewed' }
     ],
     sidebar: {
@@ -163,6 +164,17 @@ export default withMermaid(defineConfig({
             { text: '数据同步模块', link: '/developer/data-sync' },
             { text: '115 模块说明', link: '/developer/drive115-module' },
             { text: 'UI 组件说明', link: '/developer/ui-components' }
+          ]
+        }
+      ],
+      '/javscribe/': [
+        {
+          text: 'JavScribe 字幕服务',
+          items: [
+            { text: '概览', link: '/javscribe/' },
+            { text: '部署指南', link: '/javscribe/deployment' },
+            { text: '字幕工作台', link: '/javscribe/workbench' },
+            { text: 'API 参考', link: '/javscribe/api' }
           ]
         }
       ]
