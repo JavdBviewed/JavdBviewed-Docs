@@ -5,7 +5,27 @@
 
 部署分两步：**先部署服务端**（跑在 GPU 机器上，headless），**再部署客户端**
 （Docker Web 或桌面安装版，用户入口）。两者可以同机，也可以分机；
-客户端与多种形态见 [§4](#4-部署客户端)。
+客户端与多种形态见 [§4](#4-部署客户端)。配置项全量清单（服务端环境变量 /
+config.json / 服务设置白名单 / 客户端本机设置）见 [配置参考](./config)。
+
+## 快速开始（两命令）
+
+服务端（GPU 机器，有 Docker）：
+
+```bash
+git clone https://github.com/JavdBviewed/JavScribe.git /opt/JavScribe && cd /opt/JavScribe/docker
+JAVSCRIBE_API_KEY="$(openssl rand -hex 16)" docker compose up -d   # 首启自动下模型 ~3.4G
+```
+
+客户端（Web 形态，任意内网机器；装桌面版则直接下载 exe/AppImage 即可）：
+
+```bash
+cd /opt/JavScribe/web
+JAV_ENGINES="我的服务=http://<服务端IP>:8300" docker compose -f docker/docker-compose.yml up -d --build
+# 浏览器打开 http://<本机>:8400 → 服务卡片「⚙ 服务设置」填刚才的 API Key → 扫描目录入队
+```
+
+其余细节按下面章节展开。
 
 ## 1. 硬件要求
 
@@ -96,22 +116,36 @@ whisper-large-v2 原模型为 MIT）。使用前请阅读 Hugging Face 模型卡
 前置：Docker + compose v2 + nvidia-container-toolkit（自检：
 `docker run --rm --gpus all nvidia/cuda:12.8.0-base-ubuntu24.04 nvidia-smi`）。
 
-```bash
-# 1. 代码
-git clone https://github.com/JavdBviewed/JavScribe.git /opt/JavScribe && cd /opt/JavScribe
+**CI 预构建镜像（推荐，服务端免构建）**：`serve-v*` tag 触发 CI 发布
+`ghcr.io/javdbviewed/jav-scribe-serve` 镜像，compose 已默认指向它：
 
-# 2. 构建并启动（JAV_WATCH_DIR 改成你的影片落盘目录）
-JAV_WATCH_DIR=/your/media/dir docker compose -f docker/docker-compose.yml up -d --build
+```bash
+# 1. 代码（只需要 compose 文件）
+git clone https://github.com/JavdBviewed/JavScribe.git /opt/JavScribe && cd /opt/JavScribe/docker
+
+# 2. 拉取预构建镜像并启动（JAV_WATCH_DIR 改成你的影片落盘目录）
+JAV_WATCH_DIR=/your/media/dir \
+JAVSCRIBE_API_KEY="$(openssl rand -hex 16)" \
+docker compose pull && docker compose up -d
 ```
 
-首启自动下载模型（~3.4G）到宿主机 volume。可选环境变量：
+离线 / 改引擎版本时本地构建：`docker compose up -d --build`（build 段仍保留）。
+首启自动下载模型（~3.4G）到宿主机 volume。
+
+**`JAVSCRIBE_API_KEY`（强烈建议首启就设）**：`/config`（服务设置）与
+`/scan`（扫描目录）的鉴权 Key。不设也能跑任务/看看板，但客户端的
+「⚙ 服务设置」「扫描目录」会提示「该服务尚未设置 API Key」。
+设了之后在客户端登记服务时填同一个值。
+
+常用环境变量（全量清单见 [配置参考](./config)）：
 
 | 变量 | 默认 | 说明 |
 |---|---|---|
+| `JAVSCRIBE_API_KEY` | 空（不鉴权） | `/config`、`/scan` 鉴权 Key，**想用端「服务设置」「扫描目录」必须设置** |
 | `JAV_WATCH_DIR` | `/media/jav` | 监听目录（BT/PT 落盘处），`.zh.srt` 生成在同级 |
-| `JAV_MODELS_DIR` | `/opt/jav-scribe/models` | 模型权重存放目录（volume） |
+| `JAV_MODELS_DIR` | `/opt/jav-scribe/models` | 模型权重存放目录（volume，跨重建保留） |
+| `JAV_DATA_DIR` | `/opt/jav-scribe/data` | 持久化数据目录：活动 profile 配置 + inbox（音轨/字幕缓存） |
 | `JAV_PORT` | `8300` | 进度/上传 API 宿主机端口 |
-| `JAVSCRIBE_API_KEY` | 空 | 设置 `/config`、`/scan` 鉴权（启用后见 [API 参考](./api)） |
 | `JAVSCRIBE_HOST_ROOT` | 空 | 容器化扫描映射，建议 `/hostfs`（见下） |
 
 **服务器访问不了 HuggingFace 时离线放模型**：在有网机器上跑 ChickenRice 的
@@ -160,6 +194,19 @@ uv run jav-scribe watch --profile local
 uv run jav-scribe upload "D:\Videos\JAV\XXX-123.ts" --remote http://<服务器>:8300
 ```
 
+### 服务端升级
+
+```bash
+cd /opt/JavScribe/docker
+docker compose pull      # 拉新版镜像；或把 image 钉到具体 tag（如 :v0.2.5）
+docker compose up -d     # 重建容器
+```
+
+- 数据卷保留活动配置与 inbox，模型卷不受影响（不重复下载）；
+- **任务状态随重启清空**（服务端内存设计，见 [常见问题](./faq)）——
+  升级前建议先在客户端「⏸ 暂停所有」，升级后「▶ 继续任务」；
+- 版本比对：客户端服务卡片会显示服务端当前版本与最新版本（落后时提示）。
+
 ## 4. 部署客户端
 
 客户端是同一产品、两种形态（界面/交互/版本号完全一致，同号同 commit 发布）：
@@ -184,6 +231,9 @@ services:
     volumes: [javweb-data:/data]
 volumes: {javweb-data: {}}
 ```
+
+> 无外网部署机：本地 `docker compose up -d --build`（或 `docker build`）构建镜像即可，
+> 运行期不需要外网（更新检查失败会静默降级，不影响使用）。
 
 ### Docker · 形态二：多机（一个客户端 + N 个服务端）
 
@@ -212,24 +262,17 @@ JAV_ENGINES="服务A=http://<IP_A>:8300,服务B=http://<IP_B>:8300" \
 
 ## 5. 配置参考
 
-配置文件：`~/.jav_scribe/config.json`（Windows 为 `%USERPROFILE%\.jav_scribe\config.json`，
-或 `--config` 指定）。支持 `profiles` 多套配置，完整字段见仓库
-`config/jav_scribe.example.json`。
+配置分三处，全量清单、默认值与逐项说明见 **[配置参考](./config)**：
 
-| 段 | 关键字段 | 说明 |
-|---|---|---|
-| `infer` | `command` / `model` / `device` / `batch` / `max_batch_size` / `log_level` | 字幕引擎命令与参数；`device` 取 auto/cuda/cpu/amd；**`log_level` 必须 DEBUG** |
-| `subtitle` | `formats` / `lang_tag` / `naming` / `output_dir` / `skip_if_exists` / `overwrite` | 输出格式（srt）、语言标签（zh/ja/en/none）、命名策略（rename/keep）、是否跳过已有字幕 |
-| `watch` | `dirs` / `interval_s` / `process_existing` | 监听目录、扫描间隔、是否追平存量文件 |
-| `scan` | `video_exts` / `subtitle_patterns` / `recurse` | 文件夹扫描规则（默认 11 种视频扩展名、`.zh.srt`/`.srt` 判定、递归）；客户端「服务设置」可热调 |
-| `polish` | `enabled` / `base_url` / `api_key` / `model` / `batch_lines` | 可选 LLM 润色第二遍（任意 OpenAI 兼容端点） |
-| `emby` | `enabled` / `url` / `api_key` | 完成后触发 Emby Refresh |
-| `jasna` | `enabled` / `command` / `output` | 可选马赛克修复（命令模板，`{path}`/`{stem}`/`{out}` 占位） |
-| `progress` | `host` / `port` | serve 的进度接口监听地址（默认 8300） |
+1. **服务端环境变量**（部署时，`JAVSCRIBE_API_KEY` / `JAV_PORT` / 各目录卷…）；
+2. **服务端 config.json**（`~/.jav_scribe/config.json`，支持 `profiles` 多套；
+   完整字段见仓库 `config/jav_scribe.example.json`；**`infer.log_level` 必须 DEBUG**）；
+3. **「⚙ 服务设置」白名单**（客户端页面可热改：字幕命名/跳过策略、推理设备/模型/
+   转译并发/批量、VAD、润色、Emby、JASNA、扫描规则、缓存保留期；**服务端级**，
+   对所有连到该服务的客户端生效）+ **客户端本机设置**（音轨提取并发、服务队列上限，
+   只约束本客户端）。
 
-> 客户端「⚙ 服务设置」可在线修改的是**白名单**项（字幕语言/跳过策略/命名、
-> 推理设备/模型/日志级别/批量、润色、Emby、JASNA）；服务器内部项
-> （infer 命令、watch 目录、output_dir 等）不暴露，仍走配置文件。
+服务器内部项（`infer.command/cwd`、`watch.*`、`jasna.command` 等）不暴露给页面，仍走配置文件。
 
 ## 6. 验证与日常使用
 

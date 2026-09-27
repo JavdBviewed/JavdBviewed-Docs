@@ -173,7 +173,9 @@ export default withMermaid(defineConfig({
           items: [
             { text: '概览', link: '/javscribe/' },
             { text: '部署指南', link: '/javscribe/deployment' },
-            { text: '字幕工作台', link: '/javscribe/workbench' },
+            { text: '客户端', link: '/javscribe/workbench' },
+            { text: '配置参考', link: '/javscribe/config' },
+            { text: '常见问题', link: '/javscribe/faq' },
             { text: 'API 参考', link: '/javscribe/api' }
           ]
         }
