@@ -30,6 +30,8 @@ Docker 部署时通过 compose `environment` 或 `.env` 提供：
 | `JAVSCRIBE_INBOX_DIR` | 数据目录下 `inbox/` | 上传音轨落盘目录（细调用，一般不动） |
 | `JAVSCRIBE_EMBY_API_KEY` | 空 | `emby.api_key` 的环境变量形态（与配置文件二选一） |
 | `JAVSCRIBE_LLM_API_KEY` | 空 | `polish.api_key` 的环境变量形态（与配置文件二选一） |
+| `JAV_PROXY` | 空 | 外网代理地址（如 `http://192.168.0.1:10808`）。Docker 部署由 entrypoint 注入容器全局，首启模型下载与外网出站均走代理；内网网段（10/8、172.16/12、192.168/16、localhost）自动豁免 |
+| `JAV_NO_PROXY` | 空 | 追加不走代理的地址（逗号分隔，支持 CIDR），与默认豁免列表合并 |
 
 最小部署只需 `JAV_WATCH_DIR`（或不用 watch 就不设）+ `JAVSCRIBE_API_KEY`（推荐），其余默认即可。
 

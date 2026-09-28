@@ -147,6 +147,8 @@ docker compose pull && docker compose up -d
 | `JAV_DATA_DIR` | `/opt/jav-scribe/data` | 持久化数据目录：活动 profile 配置 + inbox（音轨/字幕缓存） |
 | `JAV_PORT` | `8300` | 进度/上传 API 宿主机端口 |
 | `JAVSCRIBE_HOST_ROOT` | 空 | 容器化扫描映射，建议 `/hostfs`（见下） |
+| `JAV_PROXY` | 空 | 外网代理地址（如 `http://192.168.0.1:10808`），首启下模型等外网出站走代理（见下） |
+| `JAV_NO_PROXY` | 空 | 追加不走代理的地址（逗号分隔，支持 CIDR）；内网网段默认已豁免 |
 
 **服务器访问不了 HuggingFace 时离线放模型**：在有网机器上跑 ChickenRice 的
 `download_models.py`（两条命令同方案 B），把整个 `models/` 目录上传到
@@ -159,6 +161,21 @@ models/
 ├── whisper-large-v2-translate-zh-v0.2-st-ct2/   # model.bin 等 5 个文件
 └── whisper-base/                                 # 4 个 json 配置
 ```
+
+**外网代理（`JAV_PROXY`，机器不能直连外网时用）**：服务器只有内网 + 代理时，
+设置代理地址，首启的模型下载（~3.4G）与容器内其他外网出站都会走代理：
+
+```bash
+JAV_PROXY=http://192.168.0.1:10808 \
+JAV_WATCH_DIR=/your/media/dir \
+docker compose up -d
+```
+
+- entrypoint 会把该代理注入容器全局（下载与运行时出站共用）。
+- **内网自动豁免**：localhost / 10.0.0.0/8 / 172.16.0.0/12 / 192.168.0.0/16 等
+  不走代理，内网互访不受影响；需要额外豁免用 `JAV_NO_PROXY`（逗号分隔，支持 CIDR）。
+- 非 Docker 部署（手动 / exe）：导出 `HTTPS_PROXY`/`HTTP_PROXY` 即可，引擎模型
+  下载（HF → hf-mirror 回退 + 429 重试）遵循系统代理。
 
 **容器化扫描宿主机目录**：compose 默认把宿主机根**只读**挂载在容器 `/hostfs`
 （仅 `/scan` 链路可达，且需 API Key）。设置 `JAVSCRIBE_HOST_ROOT=/hostfs` 后，
