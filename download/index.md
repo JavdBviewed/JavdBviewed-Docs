@@ -4,158 +4,40 @@ import DownloadCenter from '../.vitepress/components/DownloadCenter.vue'
 
 # 下载与更新
 
-浏览器扩展已提供正式下载。Cloud 以 Docker 容器交付；桌面端和 Android 客户端将在准备完成后开放。
-
 <DownloadCenter />
 
-## 扩展安装
+请按产品分别选择下载或部署入口。发布清单中的版本号与实际可获取的 Release 资产可能暂时不同步；安装前请打开对应 Release 页面，确认所需安装包存在，并核对文件名、版本与系统架构。
 
-1. 下载最新扩展 ZIP 并解压到固定目录。
-2. 在 Chromium 浏览器打开扩展管理页，例如 Chrome 的 `chrome://extensions/`。
-3. 开启“开发者模式”，选择“加载已解压的扩展程序”，然后选中解压目录。
-4. 后续更新时下载新的 ZIP、替换目录内容，再在扩展管理页重新加载。
+## 浏览器扩展
 
-下载卡片优先读取 GitHub Latest Release 并直达扩展 ZIP。GitHub API 暂时不可用时，入口会自动回退到 [Releases 页面](https://github.com/JavdBviewed/JavdBviewed/releases)。
+浏览器扩展的正式 Release 发布在[扩展源仓 Releases](https://github.com/JavdBviewed/JavdBviewed/releases)，不在集中发布仓的桌面或 Android 下载列表中。已核实的正式版本为 v2.1.3；安装或升级前仍请以该页面实际提供的资产和发布说明为准。
+
+第一次使用请从[入门指南](/start/)开始。扩展与桌面、Android 应用是不同的客户端，不能互用安装包。
+
+## Windows 桌面客户端
+
+Windows x64 版 1.0.0 已发布。请从[desktop-v1.0.0 正式发布页](https://github.com/JavdBviewed/JavdBviewed-release/releases/tag/desktop-v1.0.0)获取 `.exe` 安装程序，按[桌面安装指南](/desktop/install)核对文件和完成首次启动。`latest.yml` 与 `.blockmap` 是更新元数据，不是手动安装包。
+
+桌面客户端的媒体库、媒体源和更新说明分别见[本地媒体库](/desktop/local-library)、[媒体源](/desktop/sources)和[升级指南](/desktop/updates)。目前不要将主分支功能说明视为 1.0.0 的已发布能力；未核实 macOS 或 Linux 的稳定安装包。
+
+## Android 客户端
+
+目前已核实可获取的公开安装包是 [mobile-v39（1.0.2）](https://github.com/JavdBviewed/JavdBviewed-release/releases/tag/mobile-v39)。请按[Android 安装指南](/mobile/install)选择设备架构对应的 APK；无法判断架构时可使用该版本提供的 universal 包。
+
+发布清单虽列出 1.0.3/mobile-v42，但核对时该 Release 与 APK 资产返回 404，因此这里不将它列为可下载版本，也不提供不可用的资产链接。安装后可依次阅读[媒体源](/mobile/sources)、[播放与下载](/mobile/playback)、[媒体库](/mobile/library)。这里没有经核实的 iOS 或 TV 正式下载入口。
 
 ## Cloud 部署指南 {#cloud-deploy}
 
-> [!IMPORTANT]
-> 部署前请确认上方 Cloud 状态。只有 stable 清单显示“已发布”时才执行拉取；“发布准备中”表示镜像、摘要或发布说明仍可能调整。
+Cloud 是自行部署的服务，不是客户端安装包。已核实的公开稳定版本为 1.2.9；请从[Cloud 部署指南](/cloud/deployment)获取容器配置、持久化与首次登录步骤，不要把页面中的下载卡片当作容器部署命令。
 
-Cloud 只提供容器镜像，不提供桌面安装包，也不会自行替换或重启正在运行的容器。下面的 Compose 配置将数据保存在当前目录的 `data/`，并启用只读根文件系统、无额外 capabilities 和禁止提权。
+升级前请阅读[备份与升级](/cloud/backup-upgrade)：数据库及 `vault.key` 必须一起备份，镜像回滚不等于数据回滚。既有指向 `#cloud-deploy` 的链接继续落在此节；具体部署步骤已移至独立页面。
 
-### 1. 准备目录
+## JavScribe 字幕工具
 
-新建一个独立部署目录，并在其中创建 `compose.yaml`：
+JavScribe 的客户端和服务端分别维护版本。请到[JavScribe 自有 Releases](https://github.com/JavdBviewed/JavScribe/releases)查看公开可获取的包，并按[JavScribe 指南](/javscribe/)核对组件与部署方式。已核实 client-v0.2.66 有公开 Release；serve-v0.2.16 仅核实到源码标签，不能据此承诺已有可直接下载的服务端安装包。
 
-```yaml
-services:
-  cloud:
-    image: ${CLOUD_IMAGE_NAME:-ghcr.io/javdbviewed/javdbviewed-cloud:latest}
-    container_name: javdbviewed-cloud
-    restart: unless-stopped
-    ports:
-      - "18080:8080"
-    environment:
-      CLOUD_ADDR: ":8080"
-      CLOUD_DATA_DIR: /data
-      CLOUD_ADMIN_USER: admin
-      CLOUD_JWT_SECRET: ${CLOUD_JWT_SECRET}
-      CLOUD_ADMIN_PASSWORD: ${CLOUD_ADMIN_PASSWORD:-}
-      CLOUD_CORS_ORIGINS: ${CLOUD_CORS_ORIGINS:-}
-      CLOUD_UPDATE_MANIFEST_MIRRORS: ${CLOUD_UPDATE_MANIFEST_MIRRORS:-}
-    volumes:
-      - ./data:/data
-    read_only: true
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
-    tmpfs:
-      - /tmp:size=64m,mode=1777,noexec,nosuid,nodev
-    healthcheck:
-      test: ["CMD", "/app/cloud", "healthcheck"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
-```
+## 下载或更新遇到问题
 
-同目录创建 `.env`。`CLOUD_JWT_SECRET` 必须使用至少 16 位的强随机值；可以用 `openssl rand -hex 32` 生成：
-
-```dotenv
-CLOUD_IMAGE_NAME=ghcr.io/javdbviewed/javdbviewed-cloud:latest
-CLOUD_JWT_SECRET=请替换为强随机值
-
-# 可选：至少 16 位且包含大小写字母、数字、符号中的三类。
-# 留空时，首次启动日志会输出一次性 temporaryPassword。
-CLOUD_ADMIN_PASSWORD=
-
-# 可选：GitHub Raw 访问困难时填写完整的 stable.json 镜像地址。
-# 多个地址使用英文逗号分隔。
-CLOUD_UPDATE_MANIFEST_MIRRORS=
-```
-
-### 容器环境变量
-
-| 变量 | 是否需要填写 | 说明 |
-| --- | --- | --- |
-| `CLOUD_IMAGE_NAME` | 可选 | 默认 `ghcr.io/javdbviewed/javdbviewed-cloud:latest`。日常执行 `docker compose pull` 会获取最新正式镜像；回滚时改为已验证的固定版本 tag。 |
-| `CLOUD_JWT_SECRET` | 必填 | 至少 16 位的强随机值，用于签发登录与设备令牌。首次部署前生成，后续不要随意更换。 |
-| `CLOUD_ADMIN_PASSWORD` | 可选 | 设置后作为首次管理员密码。留空时日志仅在首次启动输出一次临时密码；管理员账号固定为 `admin`。 |
-| `CLOUD_CORS_ORIGINS` | 可选 | 限制允许访问服务的浏览器 Origin，多个值用英文逗号分隔。扩展接入可填写 `chrome-extension://扩展ID`。 |
-| `CLOUD_UPDATE_MANIFEST_MIRRORS` | 可选 | 更新清单镜像地址，多个地址用英文逗号分隔；只影响版本检查，不影响 GHCR 镜像拉取。 |
-
-`CLOUD_ADDR`、`CLOUD_DATA_DIR` 与 `CLOUD_ADMIN_USER` 已由 Compose 固定为容器内监听 `:8080`、数据目录 `/data` 和管理员 `admin`，通常不需要修改。不要设置 `CLOUD_ALLOW_INSECURE_DEV`，它仅用于本地开发，会降低生产环境的配置门槛。
-
-### 2. 拉取并启动
-
-stable 清单标记为已发布后，在部署目录执行：
-
-```bash
-docker compose pull cloud
-docker compose up -d cloud
-docker compose ps
-```
-
-若没有设置 `CLOUD_ADMIN_PASSWORD`，从首次启动日志取得临时密码：
-
-```bash
-docker compose logs --tail 100 cloud
-```
-
-管理员账号固定为 `admin`。首次登录后按提示修改密码。
-
-### 3. 核对服务与版本
-
-```bash
-curl -fsS http://127.0.0.1:18080/health
-curl -fsS http://127.0.0.1:18080/version
-```
-
-管理页面位于 `http://127.0.0.1:18080/`。`/version` 返回的 `version`、`commit`、`buildNumber` 和 `releaseChannel` 应与 [stable 清单](https://raw.githubusercontent.com/JavdBviewed/JavdBviewed-release/main/manifests/cloud/stable.json)一致。公网部署请在 Cloud 前增加 Caddy 或 nginx，并只通过 HTTPS 对外提供服务。
-
-### 4. 升级
-
-1. 在管理台创建快照，并额外备份部署目录下的 `data/`。
-2. 确认 stable 清单已标记为 `released`，记录目标镜像 digest。
-3. 保持 `CLOUD_IMAGE_NAME` 为 `:latest`，拉取镜像并重新创建容器，然后核对健康、版本和管理员登录。
-
-```bash
-docker compose pull cloud
-docker compose up -d cloud
-docker compose logs --tail 100 cloud
-```
-
-升级时始终保留原 `data/` 目录。Cloud 的更新检查只负责提示，不会自动执行上述操作。
-
-### 5. 回滚
-
-把 `.env` 中的 `CLOUD_IMAGE_NAME` 从 `:latest` 改为上一个已验证的固定版本 tag，再执行：
-
-```bash
-docker compose pull cloud
-docker compose up -d cloud
-```
-
-镜像回滚不会自动回滚数据。若升级涉及数据迁移并出现异常，应停止容器，再从升级前快照或 `data/` 备份恢复；不要删除或重新初始化原数据目录。
-
-## 更新通道
-
-| 通道 | 状态 | 用途 |
-| --- | --- | --- |
-| `stable` | 当前使用 | 普通自部署用户的唯一更新通道 |
-| `beta` | 预留 | 未来测试版本，暂不提供部署清单 |
-| `dev` | 预留 | 本地开发或内部验证，暂不提供部署清单 |
-
-Cloud 内置 stable 官方清单地址，不需要配置主地址、检查开关或通道。文档站域名变化不会影响容器检查更新。
-
-## 网络加速
-
-`CLOUD_UPDATE_MANIFEST_MIRRORS` 只用于加速读取更新清单。填写一个或多个完整的 `stable.json` 地址，Cloud 会按顺序尝试，全部失败后回退到官方主源：
-
-```dotenv
-CLOUD_UPDATE_MANIFEST_MIRRORS=https://mirror.example.com/JavdBviewed/JavdBviewed-release/main/manifests/cloud/stable.json,https://another.example.com/JavdBviewed/JavdBviewed-release/main/manifests/cloud/stable.json
-```
-
-镜像地址必须返回与官方清单兼容的 JSON，不能修改版本、镜像 tag 或摘要。它不是新的更新通道，也不会改变可信发布源。GHCR 镜像拉取加速属于 Docker 守护进程配置，应在宿主机使用自己信任的 registry mirror；不要把 registry 地址填入这个变量。
+1. 返回对应产品的正式 Release 页面，确认资产实际存在，并核对版本、架构和校验信息；不要仅凭清单版本号判断可安装。
+2. 升级前备份已有数据。桌面客户端按[升级指南](/desktop/updates)操作；Android 不要为了覆盖升级先卸载旧版；Cloud 按[备份与升级](/cloud/backup-upgrade)保留数据库与密钥。
+3. 下载链接不可用时，先查看同一产品上一个已核实的公开版本，不要从来源不明的镜像下载或把其他产品的安装包混用。

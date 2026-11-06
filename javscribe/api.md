@@ -1,15 +1,18 @@
 # API 参考
 
 两个 HTTP 面：字幕服务端（`serve`，默认 8300）与客户端（Web 形态，默认 8400）。
-客户端不产生任务状态，只做聚合与转发（任务状态单一真源在服务端内存）；
-真正干活的接口都在服务端侧。
+Serve 是推理任务的状态真源；`client-v0.2.66` 的 Web 工作台还在**客户端部署机**
+本地扫描目录、维护本地扫描管线任务，并通过 `/api/jobs` 汇总本地与各 Serve 的任务。
+任务不全在服务端内存：**仅对 `serve-v0.2.16` 源码/自行构建版本**，启用持久数据目录后
+已完成的终态历史可写入 `jobs.json` 并在重启后恢复；未完成、在途任务不恢复执行。
+该源码 tag 未核到对应公开安装包，不应把其行为当成旧版 Serve 的共同保证。
 
 ## 1. 字幕服务（8300）
 
 | 接口 | 鉴权 | 说明 |
 |---|---|---|
 | `GET /health` | 无 | 服务存活 |
-| `GET /jobs` | 无 | 所有任务 |
+| `GET /jobs` | 无 | 服务端当前返回的任务列表；不包括客户端尚在本地扫描管线中的任务 |
 | `GET /jobs/<id>` | 无 | 单任务，逐文件：状态 / 进度 / 已翻到第几分钟 |
 | `GET /jobs/<id>/result` | 无 | 下载该任务的 SRT |
 | `PUT /upload` | 无 | 接收 16kHz opus 音频并提交处理 |
@@ -27,10 +30,14 @@
 
 ### 容器化路径映射
 
-服务跑在 Docker 里时，`/scan` 与 `/scan/submit` 只能看到容器内路径。
-compose 默认把宿主机根**只读**挂载在容器 `/hostfs`（仅 `/scan` 链路可达）；
-设置 `JAVSCRIBE_HOST_ROOT=/hostfs` 后，对「容器内不存在」的绝对路径会透明映射
-到 `/hostfs/<路径>`。字面可见的路径永远优先，不做映射。
+Serve 跑在 Docker 里时，服务端 `/scan` 与 `/scan/submit` 只能访问 **Serve 容器**
+实际挂载、允许读取的路径；Serve Compose 的宿主机根只读挂载到 `/hostfs` 时，
+`JAVSCRIBE_HOST_ROOT=/hostfs` 可供该容器在原路径不存在时回退解析。此设置不让
+Web 工作台自动读取 Serve 主机的目录。Web 客户端本地扫描在**自己的容器**执行，
+需在 Web 容器另行挂载目标目录，必要时独立设置 `JAVSCRIBE_HOST_ROOT`；
+仅只读映射无法将生成的字幕写回该目录，写回前须核对目标目录的读写权限。
+浏览器「选择文件/文件夹」则读取浏览器所在电脑，不使用上述容器扫描路径。
+不要为修复路径错误直接把整个宿主机根目录暴露给 Web 容器。
 
 ## 2. 客户端（8400）
 
@@ -40,8 +47,10 @@ compose 默认把宿主机根**只读**挂载在容器 `/hostfs`（仅 `/scan` �
 | `GET /api/update` | 更新检查（比对 GitHub Release，客户端 + 服务端） |
 | `GET /api/engines` | 服务登记表 |
 | `POST /api/engines` / `PUT /api/engines/{name}` / `DELETE /api/engines/{name}` | 增改删服务（`{name, url, api_key}`） |
-| `GET /api/jobs` | 汇总所有服务的任务 + 本机扫描管线任务（看板数据源，5s 轮询）；每行带 `local` 标记（本机派发 / 他端任务） |
-| `GET /api/jobs/summary` | 终态累计计数（done/skipped/failed，超出内存窗口仍可准确） |
+| `/api/scan/local` | `client-v0.2.66` 工作台在客户端部署机本地扫描可访问目录，不是服务端 `/scan` |
+| `/api/scan/local/tasks` | 客户端本地扫描管线的任务入口；不等同于 Serve 推理队列 |
+| `GET /api/jobs` | 汇总各 Serve 的任务与本地扫描管线任务（看板数据源）；`local` 区分本工作台派发与他端提交 |
+| `GET /api/jobs/summary` | 看板终态累计计数；重启后历史能否恢复取决于实际 Serve 版本与持久数据目录 |
 | `GET/PUT /api/client-config` | 客户端本机设置（音轨提取并发等，不经服务端） |
 | `POST /api/pause` | 全局暂停/继续（本机管线闸 + 代理所有在线服务队列，服务端级操作） |
 | `POST /api/upload` | 整片上传（回退链路，202 `{upload_id, duration_s}`，上限 `JAV_UPLOAD_MAX_GB`） |
@@ -66,5 +75,5 @@ compose 默认把宿主机根**只读**挂载在容器 `/hostfs`（仅 `/scan` �
 - **`/scan` 可列举服务机器上的任意目录**（文件名 + 大小）并把任意本地路径入队处理，
   敏感性等同 `/config`，**切勿对外暴露**；泄露 `/scan` 等于交出该机的媒体库清单
 - 必须对外时：在 8300/8400 前面加一层**带鉴权的反向代理**（或仅暴露 8400 + 代理层鉴权）
-- 各服务的 `X-Api-Key` 只存在**客户端**数据卷（`JAV_DATA_DIR`），接口不回显明文；
+- 各服务的 `X-Api-Key` 保存在**客户端本地**（Web 形态为 `JAV_WEB_DATA_DIR` 对应的数据卷），接口不回显明文；
   但它仍是服务级共享密钥，备份/迁移数据卷时按密钥对待
