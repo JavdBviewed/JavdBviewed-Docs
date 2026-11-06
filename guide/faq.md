@@ -1,6 +1,6 @@
 ﻿# 常见问题
 
-本页汇总当前版本最常见的问题，优先按“现在真实界面怎么操作、真实功能边界是什么”来回答。
+本页回答 JavdBviewed 浏览器扩展的常见问题；桌面端、Android 和自建 Cloud 有各自的安装与使用说明。
 
 如果你只是想尽快判断“这是配置问题、站点变动、外部服务异常，还是值得提 issue 的 bug”，建议直接先看文末的 [提 issue 前先确认什么](#提-issue-前先确认什么)。
 
@@ -29,7 +29,12 @@
 **A**：因为项目内容性质不适合上架 Chrome Web Store，所以当前以 GitHub Releases 手动安装为主。参考：
 
 - [快速开始](/guide/quick-start)
+- [扩展源仓 Releases](https://github.com/JavdBviewed/JavdBviewed/releases)：扩展 ZIP 从这里选择正式版本，不要误用其他产品的集中发布仓。
 - [版本发布](/reference/changelog)
+
+### Q: 桌面端和 Android 也按这里的步骤加载扩展吗？
+
+**A**：不需要。这里的 `chrome://extensions/` / `edge://extensions/` 步骤只适用于浏览器扩展；桌面端查看[桌面端安装指南](/desktop/install)，Android 查看 [Android 安装指南](/mobile/install)。自建 Cloud 是独立服务，部署和备份步骤见 [Cloud 指南](/cloud/)。
 
 ### Q: 支持哪些浏览器？
 
@@ -53,7 +58,7 @@
 - 浏览器配置目录损坏
 - 你切换了浏览器用户目录或新设备
 
-如果数据已经比较多，建议尽快配置 [WebDAV 同步](/guide/webdav-sync) 或做本地导出。
+如果数据已经比较多，建议保留本地导出，并按需配置 [WebDAV 备份](/guide/webdav-sync)。**从 1.x 跨扩展 ID 安装 2.x 是另一种情况**：浏览器不会自动搬运旧扩展 ID 下的数据，先在旧版导出备份，不要先卸载，再按[历史 1.x 到 2.x 数据迁移](/guide/upgrade-v2)操作。
 
 ### Q: 安装成功了，但扩展图标点开是空白或异常？
 
@@ -186,7 +191,8 @@
 
 - 作品记录：看 [数据管理](/guide/data-management)
 - 演员数据：看 [演员管理](/guide/actor-management)
-- 同步与备份：看 [WebDAV 同步](/guide/webdav-sync)
+- 备份与恢复：看 [WebDAV 同步](/guide/webdav-sync)和[全局操作](/guide/settings-global-actions)
+- 自建服务记录同步：看 [Cloud 连接与同步](/guide/cloud-sync)
 - 全局导入导出：看 [全局操作](/guide/settings-global-actions)
 
 ### Q: 数据太多后怎么整理？
@@ -216,10 +222,7 @@
 
 **A**：更准确地说，它首先是备份能力，其次才是迁移辅助。
 
-如果你经常跨设备使用，长期还是建议：
-
-- 平时靠 [WebDAV 同步](/guide/webdav-sync) 保持一致
-- 关键节点再做本地导出
+如果你经常跨设备使用，可以按需要选择 [WebDAV 备份与恢复](/guide/webdav-sync)或连接[自建 Cloud 同步扩展支持的记录](/guide/cloud-sync)；二者不互相替代。关键节点仍应做本地导出。跨扩展 ID 的历史升级另见[数据迁移流程](/guide/upgrade-v2)。
 
 ### Q: 批量操作以后数据不符合预期怎么办？
 
@@ -235,6 +238,10 @@
 连续做多次覆盖、同步、删除，往往比第一次误操作更难恢复。
 
 ## WebDAV 同步
+
+### Q: Cloud 同步和 WebDAV 备份是一回事吗？
+
+**A**：不是。[Cloud 多端同步](/guide/cloud-sync)连接你自建的 Cloud 服务，管理设备并同步扩展支持的记录；[WebDAV](/guide/webdav-sync)提供独立的备份与恢复路径。Cloud 不会把本地影片文件上传到服务端；重要操作前仍应保留 WebDAV 或本地导出的备份。部署、升级 Cloud 服务时按[服务端备份指南](/cloud/backup-upgrade)另行备份服务端数据；扩展备份不等于服务端数据库备份。
 
 ### Q: WebDAV 连接测试失败？
 
@@ -320,7 +327,11 @@
 - [同步设置](/guide/settings-sync)
 - [日志设置](/guide/settings-log)
 
-## 115 网盘
+## 媒体库与 115 网盘
+
+### Q: 扩展媒体库为什么没有扫描本机磁盘，也找不到 Cloud 媒体源？
+
+**A**：扩展仪表盘的[媒体库](/guide/media-library)展示同步到本地的 Emby、Jellyfin、115 片库索引；先配置服务器或 115 根目录，再点击「同步资料库」。它不扫描本机影片，也不把 Cloud 记录同步当作媒体来源。本机文件扫描属于[桌面端本地媒体库](/desktop/local-library)；浏览器网页的 [Emby 增强](/guide/emby-integration)也不是整个扩展媒体库。
 
 ### Q: 115 推送失败？
 
@@ -545,7 +556,9 @@ AI 功能通常依赖外部提供商、模型配置和网络条件，所以失�
 - 不知道设置在哪：看 [设置导航](/guide/settings-index)
 - 标记/状态问题：看 [视频标记](/guide/video-marking)
 - 115 问题：看 [115 网盘集成](/guide/115-drive)
-- 同步问题：看 [WebDAV 同步](/guide/webdav-sync) 和 [同步设置](/guide/settings-sync)
+- WebDAV 备份问题：看 [WebDAV 同步](/guide/webdav-sync)和[同步设置](/guide/settings-sync)
+- Cloud 记录同步问题：看 [Cloud 连接与同步](/guide/cloud-sync)
+- 媒体库问题：看 [扩展媒体库](/guide/media-library)
 - 排查异常：看 [日志设置](/guide/settings-log)
 
 ## 提 issue 前先确认什么

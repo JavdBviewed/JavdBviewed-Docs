@@ -1,64 +1,146 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import {
   formatFileSize,
   parseCloudRelease,
+  parseDesktopRelease,
   parseExtensionRelease,
+  parseMobileRelease,
   type CloudRelease,
+  type DesktopRelease,
   type ExtensionRelease,
+  type MobileRelease,
 } from './downloadCenter'
 
-const EXTENSION_API_URL = 'https://api.github.com/repos/JavdBviewed/JavdBviewed/releases/latest'
+const RELEASES_URL = 'https://github.com/JavdBviewed/JavdBviewed-release/releases'
 const EXTENSION_RELEASES_URL = 'https://github.com/JavdBviewed/JavdBviewed/releases'
-const CLOUD_MANIFEST_URL = 'https://raw.githubusercontent.com/JavdBviewed/JavdBviewed-release/main/manifests/cloud/stable.json'
+const EXTENSION_API_URL = 'https://api.github.com/repos/JavdBviewed/JavdBviewed/releases'
+const RELEASE_API_URL = 'https://api.github.com/repos/JavdBviewed/JavdBviewed-release/releases/tags'
+const MANIFEST_BASE = 'https://raw.githubusercontent.com/JavdBviewed/JavdBviewed-release/main/manifests'
+const DESKTOP_MANIFEST_URL = `${MANIFEST_BASE}/desktop/stable.json`
+const MOBILE_MANIFEST_URL = `${MANIFEST_BASE}/mobile/stable.json`
+const CLOUD_MANIFEST_URL = `${MANIFEST_BASE}/cloud/stable.json`
+const JAVSCRIBE_RELEASES_URL = 'https://github.com/JavdBviewed/JavScribe/releases'
 
+type LoadState = 'loading' | 'ready' | 'failed'
 const extension = ref<ExtensionRelease | null>(null)
-const extensionState = ref<'loading' | 'ready' | 'fallback'>('loading')
-const cloud = ref<CloudRelease>({
-  version: '1.0.0',
-  releaseStatus: 'preparing',
-  image: 'ghcr.io/javdbviewed/javdbviewed-cloud:1.0.0',
-  releaseNotesUrl: 'https://github.com/JavdBviewed/JavdBviewed-release/blob/main/releases/cloud/v1.0.0.md',
-})
-const cloudState = ref<'loading' | 'ready' | 'fallback'>('loading')
+const desktop = ref<DesktopRelease | null>(null)
+const mobile = ref<MobileRelease | null>(null)
+const cloud = ref<CloudRelease | null>(null)
+const extensionState = ref<LoadState>('loading')
+const desktopState = ref<LoadState>('loading')
+const mobileState = ref<LoadState>('loading')
+const cloudState = ref<LoadState>('loading')
 
-async function loadExtensionRelease(): Promise<void> {
+let disposed = false
+const activeRequests = new Set<AbortController>()
+
+async function readJson(url: string, headers?: HeadersInit): Promise<unknown> {
+  const controller = new AbortController()
+  activeRequests.add(controller)
+  const timeout = setTimeout(() => controller.abort(), 10_000)
   try {
-    const response = await fetch(EXTENSION_API_URL, {
-      headers: { Accept: 'application/vnd.github+json' },
-    })
-    if (!response.ok) throw new Error(`GitHub API returned ${response.status}`)
-
-    const parsed = parseExtensionRelease(await response.json())
-    if (!parsed) throw new Error('No extension ZIP found in latest release')
-
-    extension.value = parsed
-    extensionState.value = 'ready'
-  } catch (error) {
-    console.warn('扩展版本信息加载失败，已使用 Releases 回退入口。', error)
-    extensionState.value = 'fallback'
+    const response = await fetch(url, { headers, cache: 'no-cache', signal: controller.signal })
+    if (!response.ok) throw new Error(`Release lookup failed: ${response.status}`)
+    return await response.json()
+  } finally {
+    clearTimeout(timeout)
+    activeRequests.delete(controller)
   }
 }
 
-async function loadCloudRelease(): Promise<void> {
+function manifestTag(payload: unknown): string | null {
+  if (!payload || typeof payload !== 'object' || !('latest' in payload)) return null
+  const latest = payload.latest
+  return latest && typeof latest === 'object' && 'tag' in latest && typeof latest.tag === 'string'
+    ? latest.tag
+    : null
+}
+
+async function matchesPublicRelease(tag: string, assets: { name: string; downloadUrl: string; size: number }[]): Promise<boolean> {
+  const payload = await readJson(`${RELEASE_API_URL}/${encodeURIComponent(tag)}`, {
+    Accept: 'application/vnd.github+json',
+  })
+  if (
+    !payload || typeof payload !== 'object'
+    || !('tag_name' in payload) || payload.tag_name !== tag
+    || !('draft' in payload) || payload.draft !== false
+    || !('prerelease' in payload) || payload.prerelease !== false
+    || !('assets' in payload) || !Array.isArray(payload.assets)
+  ) return false
+
+  return assets.every((expected) => payload.assets.some((asset: unknown) =>
+    asset !== null && typeof asset === 'object'
+    && 'name' in asset && asset.name === expected.name
+    && 'browser_download_url' in asset && asset.browser_download_url === expected.downloadUrl
+    && 'size' in asset && asset.size === expected.size,
+  ))
+}
+
+async function loadExtensionRelease(): Promise<void> {
   try {
-    const response = await fetch(CLOUD_MANIFEST_URL, { cache: 'no-cache' })
-    if (!response.ok) throw new Error(`Cloud manifest returned ${response.status}`)
+    let found: ExtensionRelease | null = null
+    // The mixed-product feed is bounded; an unmatched page is not proof of no release.
+    for (let page = 1; page <= 2 && !found; page++) {
+      if (disposed) return
+      const payload = await readJson(`${EXTENSION_API_URL}?per_page=30&page=${page}`, {
+        Accept: 'application/vnd.github+json',
+      })
+      if (!Array.isArray(payload)) throw new Error('Invalid release list')
+      found = payload.map(parseExtensionRelease).find((item): item is ExtensionRelease => item !== null) ?? null
+      if (payload.length < 30) break
+    }
+    if (!disposed) {
+      extension.value = found
+      extensionState.value = found ? 'ready' : 'failed'
+    }
+  } catch {
+    if (!disposed) extensionState.value = 'failed'
+  }
+}
 
-    const parsed = parseCloudRelease(await response.json())
-    if (!parsed) throw new Error('Cloud manifest format is invalid')
-
-    cloud.value = parsed
-    cloudState.value = 'ready'
-  } catch (error) {
-    console.warn('Cloud 发布状态加载失败，已保留已知准备状态。', error)
-    cloudState.value = 'fallback'
+async function loadManifest<T>(
+  url: string,
+  parse: (payload: unknown) => T | null,
+  onReady: (release: T) => void,
+  onFailed: () => void,
+  verify?: (release: T, payload: unknown) => Promise<boolean>,
+): Promise<void> {
+  try {
+    const payload = await readJson(url)
+    const release = parse(payload)
+    if (!release) throw new Error('Invalid release data')
+    if (verify && !(await verify(release, payload))) throw new Error('Release assets are not available')
+    if (!disposed) onReady(release)
+  } catch {
+    if (!disposed) onFailed()
   }
 }
 
 onMounted(() => {
   void loadExtensionRelease()
-  void loadCloudRelease()
+  void loadManifest(DESKTOP_MANIFEST_URL, parseDesktopRelease,
+    (release) => { desktop.value = release; desktopState.value = 'ready' },
+    () => { desktopState.value = 'failed' },
+    (release, payload) => {
+      const tag = manifestTag(payload)
+      return tag ? matchesPublicRelease(tag, [release.asset]) : Promise.resolve(false)
+    })
+  void loadManifest(MOBILE_MANIFEST_URL, parseMobileRelease,
+    (release) => { mobile.value = release; mobileState.value = 'ready' },
+    () => { mobileState.value = 'failed' },
+    (release, payload) => {
+      const tag = manifestTag(payload)
+      return tag ? matchesPublicRelease(tag, release.assets) : Promise.resolve(false)
+    })
+  void loadManifest(CLOUD_MANIFEST_URL, parseCloudRelease,
+    (release) => { cloud.value = release; cloudState.value = 'ready' },
+    () => { cloudState.value = 'failed' })
+})
+
+onUnmounted(() => {
+  disposed = true
+  activeRequests.forEach((controller) => controller.abort())
 })
 </script>
 
@@ -69,85 +151,100 @@ onMounted(() => {
         <p class="download-kicker">发布中心</p>
         <h2 id="download-products-title">选择使用方式</h2>
       </div>
-      <a class="manifest-link" :href="CLOUD_MANIFEST_URL" target="_blank" rel="noreferrer">
-        stable 清单
-      </a>
     </div>
 
     <div class="product-grid">
       <article class="product-card product-card--extension">
         <div class="product-topline">
           <span class="product-mark" aria-hidden="true">EX</span>
-          <span class="status status--released">
-            {{ extensionState === 'ready' ? '已发布' : extensionState === 'loading' ? '查询中' : '前往 Releases' }}
+          <span :class="['status', extensionState === 'ready' ? 'status--released' : 'status--preview']" aria-live="polite">
+            {{ extensionState === 'ready' ? '已发布' : extensionState === 'loading' ? '查询中' : '暂不可验证' }}
           </span>
         </div>
         <h3>浏览器扩展</h3>
-        <p v-if="extension">
-          v{{ extension.version }} · {{ extension.asset.name }}
-          <span v-if="formatFileSize(extension.asset.size)"> · {{ formatFileSize(extension.asset.size) }}</span>
-        </p>
-        <p v-else-if="extensionState === 'loading'">正在读取 GitHub 最新版本与下载资产。</p>
-        <p v-else>GitHub API 暂时不可用，可在 Releases 页面选择最新扩展 ZIP。</p>
+        <p v-if="extension">v{{ extension.version }} · {{ extension.asset.name }} · {{ formatFileSize(extension.asset.size) }}</p>
+        <p v-else-if="extensionState === 'loading'">正在查询正式发布的扩展 ZIP。</p>
+        <p v-else>暂时无法确认可下载的扩展版本，请前往发布页选择扩展 ZIP。</p>
         <div class="product-actions">
-          <a
-            class="primary-action"
-            :href="extension?.asset.downloadUrl ?? EXTENSION_RELEASES_URL"
-            target="_blank"
-            rel="noreferrer"
-          >
-            {{ extension ? '下载 ZIP' : '打开 Releases' }}
-          </a>
-          <a
-            v-if="extension"
-            class="secondary-action"
-            :href="extension.releaseUrl"
-            target="_blank"
-            rel="noreferrer"
-          >
-            版本说明
-          </a>
+          <a v-if="extension" class="primary-action" :href="extension.asset.downloadUrl" target="_blank" rel="noopener noreferrer">下载 ZIP</a>
+          <a v-if="extension" class="secondary-action" :href="extension.releaseUrl" target="_blank" rel="noopener noreferrer">版本说明</a>
+          <a v-else class="secondary-action" :href="EXTENSION_RELEASES_URL" target="_blank" rel="noopener noreferrer">查看发布页</a>
+        </div>
+      </article>
+
+      <article class="product-card product-card--desktop">
+        <div class="product-topline">
+          <span class="product-mark" aria-hidden="true">PC</span>
+          <span :class="['status', desktopState === 'ready' ? 'status--released' : 'status--preview']" aria-live="polite">
+            {{ desktopState === 'ready' ? '已发布' : desktopState === 'loading' ? '查询中' : '暂不可验证' }}
+          </span>
+        </div>
+        <h3>桌面端 · Windows x64</h3>
+        <p v-if="desktop">v{{ desktop.version }} · Windows 安装包 · {{ formatFileSize(desktop.asset.size) }}</p>
+        <p v-else-if="desktopState === 'loading'">正在查询 Windows 安装包。</p>
+        <p v-else>暂时无法确认安装包版本，请在发布页查看桌面端版本。</p>
+        <div class="product-actions">
+          <a v-if="desktop" class="primary-action" :href="desktop.asset.downloadUrl" target="_blank" rel="noopener noreferrer">下载 Windows 安装包</a>
+          <a v-if="desktop" class="secondary-action" :href="desktop.releaseNotesUrl" target="_blank" rel="noopener noreferrer">版本说明</a>
+          <a v-else class="secondary-action" :href="RELEASES_URL" target="_blank" rel="noopener noreferrer">查看发布页</a>
+          <a v-if="desktop" class="secondary-action" :href="DESKTOP_MANIFEST_URL" target="_blank" rel="noopener noreferrer">版本数据</a>
+        </div>
+      </article>
+
+      <article class="product-card product-card--android">
+        <div class="product-topline">
+          <span class="product-mark" aria-hidden="true">AN</span>
+          <span :class="['status', mobileState === 'ready' ? 'status--released' : 'status--preview']" aria-live="polite">
+            {{ mobileState === 'ready' ? '已发布' : mobileState === 'loading' ? '查询中' : '暂不可验证' }}
+          </span>
+        </div>
+        <h3>Android</h3>
+        <p v-if="mobile">v{{ mobile.version }} · 按设备架构选择 APK；不确定时选通用版。</p>
+        <p v-else-if="mobileState === 'loading'">正在查询 Android 安装包。</p>
+        <p v-else>暂时无法确认安装包版本，请在发布页查看 Android 版本。</p>
+        <ul v-if="mobile" class="apk-list" aria-label="Android 安装包">
+          <li v-for="asset in mobile.assets" :key="asset.abi">
+            <span>{{ asset.abi === 'universal' ? '通用版' : asset.abi }} <small>{{ formatFileSize(asset.size) }}</small></span>
+            <a :href="asset.downloadUrl" target="_blank" rel="noopener noreferrer" :aria-label="`下载 ${asset.abi} APK`">下载 APK</a>
+          </li>
+        </ul>
+        <div class="product-actions">
+          <a v-if="mobile" class="secondary-action" :href="mobile.releaseNotesUrl" target="_blank" rel="noopener noreferrer">版本说明</a>
+          <a v-else class="secondary-action" :href="RELEASES_URL" target="_blank" rel="noopener noreferrer">查看发布页</a>
+          <a v-if="mobile" class="secondary-action" :href="MOBILE_MANIFEST_URL" target="_blank" rel="noopener noreferrer">版本数据</a>
         </div>
       </article>
 
       <article class="product-card product-card--cloud">
         <div class="product-topline">
           <span class="product-mark" aria-hidden="true">CL</span>
-          <span :class="['status', cloud.releaseStatus === 'released' ? 'status--released' : 'status--preparing']">
-            {{ cloud.releaseStatus === 'released' ? '已发布' : '发布准备中' }}
+          <span :class="['status', cloudState === 'ready' ? cloud?.releaseStatus === 'released' ? 'status--released' : 'status--preparing' : 'status--preview']" aria-live="polite">
+            {{ cloudState === 'loading' ? '查询中' : cloudState === 'failed' ? '暂不可验证' : cloud?.releaseStatus === 'released' ? '已发布' : '发布准备中' }}
           </span>
         </div>
-        <h3>Cloud 容器</h3>
-        <p>v{{ cloud.version }} · stable<span v-if="cloudState === 'fallback'"> · 状态源暂不可用</span></p>
-        <code>{{ cloud.image }}</code>
+        <h3>Cloud · 自部署</h3>
+        <p v-if="cloud && cloud.releaseStatus === 'released'">v{{ cloud.version }} · Docker 容器镜像</p>
+        <p v-else-if="cloud && cloud.releaseStatus === 'preparing'">当前版本尚在发布准备中，暂不建议拉取或部署。</p>
+        <p v-else-if="cloudState === 'loading'">正在读取 Cloud 发布状态。</p>
+        <p v-else>暂时无法确认 Cloud 发布状态，请先查看发布页。</p>
+        <code v-if="cloud?.releaseStatus === 'released'">{{ cloud.image }}</code>
         <div class="product-actions">
-          <a class="primary-action" href="#cloud-deploy">
-            {{ cloud.releaseStatus === 'released' ? '开始部署' : '查看部署说明' }}
-          </a>
-          <a class="secondary-action" :href="cloud.releaseNotesUrl" target="_blank" rel="noreferrer">
-            发布说明
-          </a>
+          <a v-if="cloud?.releaseStatus === 'released'" class="primary-action" href="#cloud-deploy">查看部署指南</a>
+          <a v-else-if="cloudState === 'ready'" class="secondary-action" href="#cloud-deploy">查看部署说明</a>
+          <a v-else class="secondary-action" :href="RELEASES_URL" target="_blank" rel="noopener noreferrer">查看发布页</a>
+          <a v-if="cloud" class="secondary-action" :href="cloud.releaseNotesUrl" target="_blank" rel="noopener noreferrer">版本说明</a>
+          <a v-if="cloud" class="secondary-action" :href="CLOUD_MANIFEST_URL" target="_blank" rel="noopener noreferrer">版本数据</a>
         </div>
       </article>
 
-      <article class="product-card product-card--desktop product-card--preview">
-        <div class="product-topline">
-          <span class="product-mark" aria-hidden="true">PC</span>
-          <span class="status status--preview">预告</span>
+      <article class="product-card product-card--javscribe">
+        <div class="product-topline"><span class="product-mark" aria-hidden="true">JS</span><span class="status status--preview">独立发布</span></div>
+        <h3>JavScribe · 字幕工具</h3>
+        <p>字幕客户端和服务端分别发布；版本及安装包请以 JavScribe 发布页为准。</p>
+        <div class="product-actions">
+          <a class="secondary-action" href="/javscribe/">使用文档</a>
+          <a class="secondary-action" :href="JAVSCRIBE_RELEASES_URL" target="_blank" rel="noopener noreferrer">查看发布页</a>
         </div>
-        <h3>桌面端</h3>
-        <p>面向 Windows 等桌面平台，下载入口尚未开放。</p>
-        <span class="preview-note">版本与发布日期将在准备完成后公布</span>
-      </article>
-
-      <article class="product-card product-card--android product-card--preview">
-        <div class="product-topline">
-          <span class="product-mark" aria-hidden="true">AN</span>
-          <span class="status status--preview">预告</span>
-        </div>
-        <h3>Android</h3>
-        <p>移动客户端正在准备，暂不提供安装包或测试链接。</p>
-        <span class="preview-note">正式开放时将在这里提供下载</span>
       </article>
     </div>
   </section>
@@ -185,7 +282,6 @@ onMounted(() => {
   font-weight: 700;
 }
 
-.manifest-link,
 .secondary-action {
   color: var(--vp-c-brand-1);
   font-size: 14px;
@@ -215,6 +311,7 @@ onMounted(() => {
 .product-card--cloud { --product-accent: #16836f; }
 .product-card--desktop { --product-accent: #3971b7; }
 .product-card--android { --product-accent: #7a5c9e; }
+.product-card--javscribe { --product-accent: #776047; }
 
 .product-topline {
   justify-content: space-between;
@@ -251,6 +348,9 @@ onMounted(() => {
   color: #a45105;
 }
 
+:global(.dark) .status--released { color: #83d8b1; }
+:global(.dark) .status--preparing { color: #f4b76b; }
+
 .status--preview {
   background: var(--vp-c-default-soft);
   color: var(--vp-c-text-2);
@@ -277,6 +377,28 @@ onMounted(() => {
   font-size: 12px;
   overflow-wrap: anywhere;
 }
+
+.apk-list {
+  display: grid;
+  gap: 0;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.apk-list li {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--vp-c-divider);
+  font-size: 14px;
+}
+
+.apk-list li span { min-width: 0; overflow-wrap: anywhere; }
+.apk-list small { color: var(--vp-c-text-2); }
+.apk-list a { flex: none; font-weight: 600; }
 
 .product-actions {
   flex-wrap: wrap;
@@ -305,19 +427,9 @@ onMounted(() => {
 
 .primary-action:focus-visible,
 .secondary-action:focus-visible,
-.manifest-link:focus-visible {
+.apk-list a:focus-visible {
   outline: 2px solid var(--vp-c-brand-1);
   outline-offset: 3px;
-}
-
-.preview-note {
-  display: block;
-  margin-top: auto;
-  border-top: 1px solid var(--vp-c-divider);
-  padding-top: 13px;
-  color: var(--vp-c-text-3);
-  font-size: 13px;
-  line-height: 1.5;
 }
 
 @media (max-width: 640px) {
@@ -336,6 +448,10 @@ onMounted(() => {
   .product-card p {
     min-height: 0;
   }
+}
+
+@media (max-width: 360px) {
+  .apk-list li { align-items: flex-start; flex-direction: column; gap: 0; padding: 8px 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
