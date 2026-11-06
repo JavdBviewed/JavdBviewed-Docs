@@ -1,62 +1,52 @@
-﻿# 使用教程
+﻿# 浏览器扩展使用指南
 
-欢迎使用 Jav 助手。这里集中收录面向用户的安装、配置、功能使用与排错文档。
+这里仅收录 JavdBviewed **浏览器扩展**的安装、记录整理、连接和设置说明。使用其他产品，请转到[桌面端指南](/desktop/)或 [Android 指南](/mobile/)；这些产品的媒体来源与操作步骤不等同于扩展。
 
-本页已按仪表盘顶层标签重新整理：你在拓展面板里看到什么标签，就可以在这里按相同路径找到对应文档；其中“设置”是一个总入口，下面再按子分类展开。
+## 入门
 
-## 目录
+- [快速开始](/guide/quick-start)：安装扩展并完成首次配置。
+- [界面介绍](/guide/interface)：认识仪表盘、浏览器页面与功能入口。
+- [历史 1.x 到 2.x 升级](/guide/upgrade-v2)：跨扩展 ID 迁移前备份和导入数据；不是当前版本的常规安装步骤。
 
-### 开始使用
+## 记录整理
 
-- [快速开始](/guide/quick-start) - 安装和基础配置
-- [界面介绍](/guide/interface) - 了解扩展的主要界面与入口
-- [常见问题](/guide/faq) - 常见故障与排查方法
+- [视频标记](/guide/video-marking)：标记影片与查看观看状态。
+- [数据管理](/guide/data-management)：整理番号库、清单并导入或导出记录。
+- [演员管理](/guide/actor-management)：管理演员收藏、订阅与筛选。
+- [新作品监控](/guide/new-works)：设置新作品提醒与过滤条件。
+- [数据分析](/guide/data-insights)：查看记录统计与报告。
 
-### 按仪表盘标签阅读
+## 同步连接
 
-- **首页**：先看 [界面介绍](/guide/interface)，了解各入口和主要操作区
-- **番号库**：阅读 [视频标记](/guide/video-marking) 与 [数据管理](/guide/data-management)
-- **清单**：阅读 [数据管理](/guide/data-management)，了解清单与数据整理能力
-- **演员库**：阅读 [演员管理](/guide/actor-management)，了解收藏、订阅、黑名单与标签
-- **新作品**：阅读 [新作品监控](/guide/new-works)，了解自动检测与过滤能力
-- **数据同步**：阅读 [WebDAV 同步](/guide/webdav-sync)，了解多设备同步与备份
-- **115任务**：阅读 [115 网盘集成](/guide/115-drive)，了解推送、任务与联动能力
-- **报告**：阅读 [数据分析](/guide/data-insights)，了解统计与可视化能力
-- **设置**：先看 [设置导航](/guide/settings-index)，再按下面的子分类继续阅读
+- [WebDAV 同步与备份](/guide/webdav-sync)：使用独立的备份与恢复路径。
+- [连接自建 Cloud](/guide/cloud-sync)：连接服务、管理设备并同步扩展支持的记录；不上传媒体文件。
+- [同步设置](/guide/settings-sync)：查看扩展内的同步选项。
+- [网络配置](/guide/settings-network)：检查扩展所需的网络连接。
 
-### 设置相关能力
+WebDAV 备份和 Cloud 记录同步职责不同，重要操作前仍应保留可恢复的备份。
 
-- [页面增强](/guide/page-enhancement) - 列表页与详情页增强
-- [磁力搜索](/guide/magnet-search) - 多源搜索与自定义搜索引擎
-- [AI 翻译](/guide/ai-translation) - 多模型翻译配置
-- [隐私保护](/guide/privacy-protection) - 截图模糊与敏感信息保护
-- [Emby 集成](/guide/emby-integration) - 媒体库联动与跳转
-- [WebDAV 同步](/guide/webdav-sync) - 云端备份与同步设置
-- [115 网盘集成](/guide/115-drive) - 115 相关能力与联动设置
+## 媒体库
 
-### 功能专题
+- [扩展媒体库](/guide/media-library)：同步并浏览 Emby、Jellyfin 和 115 的媒体索引与播放状态。
+- [115 网盘集成](/guide/115-drive)：配置授权、片库目录与离线任务。
+- [Emby 集成](/guide/emby-integration)：配置服务器与网页浏览联动。
 
-- [数据管理](/guide/data-management) - 番号库、清单、导入导出与整理能力
-- [演员管理](/guide/actor-management) - 演员资料、订阅与筛选管理
-- [新作品监控](/guide/new-works) - 自动检测、订阅与过滤能力
-- [数据分析](/guide/data-insights) - 统计、图表与可视化能力
+扩展媒体库不扫描电脑上的本地文件；本地文件扫描请阅读[桌面端本地媒体库](/desktop/local-library)。
 
-## 推荐阅读路径
+## 设置
 
-### 新手用户
+- [设置导航](/guide/settings-index)：查找扩展设置的各个入口。
+- [显示设置](/guide/settings-display)：调整界面显示。
+- [页面增强](/guide/page-enhancement)：设置网站列表页、详情页增强。
+- [磁力搜索](/guide/magnet-search)：配置搜索源与搜索引擎。
+- [AI 翻译](/guide/ai-translation)：配置翻译能力。
+- [隐私保护](/guide/privacy-protection)：了解页面显示中的隐私选项。
+- [报告设置](/guide/settings-report)：调整报告相关选项。
+- [日志设置](/guide/settings-log)：检查或调整日志。
+- [高级配置](/guide/settings-advanced)：管理进阶选项。
+- [全局操作](/guide/settings-global-actions)：查找跨功能操作。
+- [检查更新](/guide/settings-update)：查看扩展更新方式。
 
-1. [快速开始](/guide/quick-start)
-2. [界面介绍](/guide/interface)
-3. [视频标记](/guide/video-marking)
+## 排错
 
-### 进阶用户
-
-1. [数据管理](/guide/data-management)
-2. [WebDAV 同步](/guide/webdav-sync)
-3. [演员管理](/guide/actor-management)
-
-### 高级用户
-
-1. [新作品监控](/guide/new-works)
-2. [数据分析](/guide/data-insights)
-3. [开发文档](/developer/)
+- [常见问题](/guide/faq)：按症状检查安装、配置和使用问题。

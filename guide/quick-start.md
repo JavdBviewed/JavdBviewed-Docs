@@ -1,6 +1,8 @@
 # 快速开始
 
-这份快速开始基于当前版本的真实界面编写，适合第一次安装后尽快把扩展跑起来。
+本指南适用于 Chrome、Edge 等 Chromium 浏览器中的 JavdBviewed 扩展，帮助你完成安装和首次标记。桌面端与 Android 客户端请分别查看[桌面端指南](/desktop/)和 [Android 指南](/mobile/)，不要按扩展安装步骤操作。
+
+如果你是从旧版 1.x 跨扩展 ID 升级，请先阅读[历史 1.x 到 2.x 数据迁移](/guide/upgrade-v2)，在旧版中导出备份并保留旧版；不要先卸载或清除浏览器数据。
 
 ## 你将完成什么
 
@@ -9,21 +11,21 @@
 - 安装扩展并确认它已正常加载
 - 打开弹窗和仪表盘
 - 了解最常用的几个入口
-- 完成最基础的同步、115、设置认知
+- 按需要选择备份、记录同步和媒体库来源
 
 ## 安装扩展
 
-### 方式一：下载预编译版本
+### 从正式 Release 安装
 
-1. 打开 [GitHub Releases](https://github.com/JavdBviewed/JavdBviewed/releases)
-2. 下载最新的 `javdb-extension-v*.zip`
-3. 解压到本地固定目录
-4. 打开浏览器扩展管理页
+1. 打开[扩展源仓 Releases](https://github.com/JavdBviewed/JavdBviewed/releases)，选择正式版本的 `javdb-extension-v*.zip`。扩展安装包不在集中发布仓；[v2.1.3 发布页](https://github.com/JavdBviewed/JavdBviewed/releases/tag/v2.1.3)是已核实的一个正式版本入口。
+2. 阅读所下载版本的 Release 说明，按其要求解压 ZIP。安装包可能加密；如系统自带工具无法解压，可使用支持该格式的解压工具。不要将某个历史版本的解压密码套用到其他版本。
+3. 将解压得到的扩展文件放在固定目录，确认所选文件夹内有 `manifest.json`。不要直接选择 ZIP 文件，也不要在加载后移动或删除该目录。
+4. 打开浏览器扩展管理页：
    - Chrome：`chrome://extensions/`
    - Edge：`edge://extensions/`
-5. 开启“开发者模式”
-6. 点击“加载已解压的扩展程序”
-7. 选择刚才解压后的目录
+5. 开启「开发者模式」，点击「加载已解压的扩展程序」，选择包含 `manifest.json` 的文件夹。确认扩展已启用；如浏览器询问网站访问权限，按实际使用的网站核对授权范围。
+
+更新时继续参考所选版本的 Release 说明，并保留数据备份；从 1.x 跨扩展 ID 升级还须先走[数据迁移步骤](/guide/upgrade-v2)。
 
 ## 安装后先做这两件事
 
@@ -43,11 +45,12 @@
 
 ### 2. 打开仪表盘
 
-从弹窗进入仪表盘后，你会看到当前真实的顶层标签：
+从弹窗进入仪表盘后，可按用途找到这些入口：
 
 - 首页
 - 番号库
 - 清单
+- 媒体库
 - 演员库
 - 新作品
 - 数据同步
@@ -56,7 +59,7 @@
 - 设置
 - 日志
 
-这也是当前文档组织的主线。
+如果扩展弹窗打不开或页面功能没有出现，先检查扩展是否启用、目录是否仍在原位，以及浏览器为目标网站授予的访问权限。进一步排查见[常见问题](/guide/faq)。
 
 ## 第一次使用推荐顺序
 
@@ -84,8 +87,7 @@
 
 1. [显示设置](/guide/settings-display)
 2. [功能增强](/guide/page-enhancement)
-3. [WebDAV 同步](/guide/webdav-sync)
-4. [115 网盘集成](/guide/115-drive)
+3. [备份与恢复](/guide/settings-global-actions)
 
 ### 第二步：确认最基础的标记功能
 
@@ -99,8 +101,9 @@
 
 ### 第三步：按需要配置扩展能力
 
-- 如果你重视备份和多设备一致性：先看 [WebDAV 同步](/guide/webdav-sync)
-- 如果你需要把磁力任务送去 115：先看 [115 网盘集成](/guide/115-drive)
+- 如果你要保留独立备份：阅读 [WebDAV 备份与恢复](/guide/webdav-sync)；如果要连接自建服务同步扩展记录：阅读 [Cloud 连接与同步](/guide/cloud-sync)。两者不是同一功能。
+- 如果你要浏览和播放媒体：先看 [扩展媒体库](/guide/media-library)，再按来源配置 [Emby / Jellyfin](/guide/emby-integration) 或 [115 网盘](/guide/115-drive)。Cloud 记录同步不会上传影片文件，也不是扩展媒体库的来源。
+- 如果你需要把磁力任务送去 115：阅读 [115 网盘集成](/guide/115-drive)。
 - 如果你更关注页面体验：先看 [页面增强](/guide/page-enhancement)
 - 如果你希望统一整理记录：先看 [数据管理](/guide/data-management)
 
@@ -141,7 +144,7 @@
 3. 打开仪表盘，进入 `设置`
 4. 调整 [显示设置](/guide/settings-display) 和 [功能增强](/guide/page-enhancement)
 5. 打开一个作品详情页，测试“已看 / 想看”
-6. 如需云端能力，再配置 [WebDAV 同步](/guide/webdav-sync) 或 [115 网盘集成](/guide/115-drive)
+6. 按需设置 [WebDAV 备份](/guide/webdav-sync)、[Cloud 记录同步](/guide/cloud-sync) 或 [扩展媒体库](/guide/media-library)；115 是网盘媒体与离线任务来源，不等于记录同步。
 
 ## 下一步阅读
 
@@ -150,3 +153,4 @@
 - [数据管理](/guide/data-management)
 - [设置导航](/guide/settings-index)
 - [常见问题](/guide/faq)
+- [历史 1.x 到 2.x 数据迁移](/guide/upgrade-v2)
