@@ -80,12 +80,35 @@ describe('documentation homepage product entry', () => {
     expect(homepage).not.toContain('## 推荐阅读路线')
   })
 
-  it('keeps the dashboard image and public task-path links in their dedicated components', () => {
+  it('labels the extension screenshot as a Preview example and lets readers inspect the full image', () => {
     const dashboard = readProjectFile('.vitepress/components/HomeDashboard.vue')
-    const paths = readProjectFile('.vitepress/components/HomePaths.vue')
 
     expect(dashboard).toContain('src="/home-dashboard.png"')
-    expect(dashboard).toContain('alt="JavdBviewed Dashboard 总览"')
+    expect(dashboard).toMatch(/<a href="\/home-dashboard\.png"[^>]*aria-label="[^"]*Preview 示例[^"]*"/)
+    expect(dashboard).toMatch(/<figcaption>[^<]*Preview 示例，非当前正式界面[^<]*<\/figcaption>/)
+    expect(dashboard).toContain('alt="浏览器扩展 Dashboard Preview 示例界面，展示数据概览"')
+  })
+
+  it('keeps the extension image readable across screen widths without cropping it', () => {
+    const dashboard = readProjectFile('.vitepress/components/HomeDashboard.vue')
+    const extension = dashboard.split('.home-dashboard__extension {')[1]?.split('}')[0]
+    const preview = dashboard.split('.home-dashboard__preview {')[1]?.split('}')[0]
+    const image = dashboard.split('.home-dashboard__preview img {')[1]?.split('}')[0]
+    const mobile = dashboard.split('@media (max-width: 840px)')[1]
+
+    expect(extension).toMatch(/display:\s*grid/)
+    expect(extension).toMatch(/grid-template-columns:\s*minmax\(220px,\s*0\.65fr\)\s+minmax\(0,\s*1\.35fr\)/)
+    expect(preview).not.toMatch(/flex:\s*0\s+0\s+156px/)
+    expect(image).toMatch(/width:\s*100%/)
+    expect(image).toMatch(/height:\s*auto/)
+    expect(image).not.toMatch(/object-fit:\s*cover/)
+    expect(mobile).toMatch(/\.home-dashboard__extension\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/)
+    expect(mobile).not.toMatch(/\.home-dashboard__preview\s*\{[^}]*flex-basis:\s*94px/)
+  })
+
+  it('keeps public task-path links in their dedicated component', () => {
+    const paths = readProjectFile('.vitepress/components/HomePaths.vue')
+
     expect(paths).toContain('href="/guide/quick-start"')
     expect(paths).toContain('href="/guide/webdav-sync"')
     expect(paths).toContain('href="/guide/data-management"')
