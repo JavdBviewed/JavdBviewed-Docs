@@ -34,7 +34,7 @@ Cloud 是自行部署的服务，不是客户端安装包。已核实的公开�
 
 ## JavScribe 字幕工具
 
-JavScribe 的客户端和服务端分别维护版本。请到[JavScribe 自有 Releases](https://github.com/JavdBviewed/JavScribe/releases)查看公开可获取的包，并按[JavScribe 指南](/javscribe/)核对组件与部署方式。已核实 client-v0.2.66 有公开 Release；serve-v0.2.16 仅核实到源码标签，不能据此承诺已有可直接下载的服务端安装包。
+JavScribe 的客户端和服务端独立发布。上方卡片分别显示两个组件查询到的公开版本及正式发布或预发布状态；请进入各组件对应的发布页核对实际提供的包，并按[JavScribe 指南](/javscribe/)选择组件与部署方式。查询失败或结果不完整时，可到[JavScribe 自有 Releases](https://github.com/JavdBviewed/JavScribe/releases)核对；未查到公开版本不代表该组件未发布。
 
 ## 下载或更新遇到问题
 
