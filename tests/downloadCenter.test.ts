@@ -4,6 +4,7 @@ import {
   parseCloudRelease,
   parseDesktopRelease,
   parseExtensionRelease,
+  parseMobileMetadata,
   parseMobileRelease,
 } from '../.vitepress/components/downloadCenter'
 
@@ -201,6 +202,59 @@ describe('download center release data', () => {
         { abi: 'x86_64', name: 'app-x86_64-release.apk', size: 69_625_836, downloadUrl: `${releaseBase}/mobile-v42/app-x86_64-release.apk` },
         { abi: 'universal', name: 'app-universal-release.apk', size: 217_066_091, downloadUrl: `${releaseBase}/mobile-v42/app-universal-release.apk` },
       ],
+    })
+  })
+
+  it('reads Android version metadata independently of download availability', () => {
+    expect(parseMobileMetadata(mobileManifest)).toEqual({
+      version: '1.0.3',
+      versionCode: 42,
+      tag: 'mobile-v42',
+      releaseNotesUrl: mobileNotes,
+    })
+  })
+
+  it.each([
+    { problem: 'empty version', latest: { version: '  ' } },
+    { problem: 'invalid version', latest: { version: 'not-a-version' } },
+    { problem: 'mismatched tag', latest: { tag: 'mobile-v41' } },
+    { problem: 'non-mobile tag', latest: { tag: 'desktop-v42' } },
+    { problem: 'zero build number', latest: { versionCode: 0 } },
+    { problem: 'fractional build number', latest: { versionCode: 42.5 } },
+    { problem: 'unsafe build number', latest: { versionCode: Number.MAX_SAFE_INTEGER + 1 } },
+    { problem: 'invalid release notes URL', latest: { releaseNotesUrl: 'javascript:alert(1)' } },
+  ])('rejects Android metadata with $problem even when all APKs exist', ({ latest }) => {
+    const manifest = { ...mobileManifest, latest: { ...mobileManifest.latest, ...latest } }
+
+    expect(parseMobileMetadata(manifest)).toBeNull()
+    expect(parseMobileRelease(manifest)).toBeNull()
+  })
+
+  it.each([
+    { problem: 'unsupported schema', patch: { schemaVersion: 2 } },
+    { problem: 'different product', patch: { product: 'javdbviewed-desktop' } },
+    { problem: 'non-stable channel', patch: { channel: 'beta' } },
+    { problem: 'unreleased manifest', patch: { releaseStatus: 'preparing' } },
+    { problem: 'missing metadata', patch: { latest: null } },
+  ])('rejects Android metadata from a manifest with $problem', ({ patch }) => {
+    expect(parseMobileMetadata({ ...mobileManifest, ...patch })).toBeNull()
+  })
+
+  it.each([
+    { problem: 'missing assets', artifacts: undefined },
+    { problem: 'empty assets', artifacts: [] },
+    { problem: 'partial ABI list', artifacts: mobileManifest.latest.artifacts.slice(0, 3) },
+    { problem: 'invalid asset', artifacts: mobileManifest.latest.artifacts.map((asset) => ({ ...asset, size: 0 })) },
+    { problem: 'duplicate ABI', artifacts: [...mobileManifest.latest.artifacts, mobileManifest.latest.artifacts[0]] },
+  ])('retains Android metadata with $problem without accepting the downloads', ({ artifacts }) => {
+    const manifest = { ...mobileManifest, latest: { ...mobileManifest.latest, artifacts } }
+
+    expect(parseMobileRelease(manifest)).toBeNull()
+    expect(parseMobileMetadata(manifest)).toEqual({
+      version: '1.0.3',
+      versionCode: 42,
+      tag: 'mobile-v42',
+      releaseNotesUrl: mobileNotes,
     })
   })
 

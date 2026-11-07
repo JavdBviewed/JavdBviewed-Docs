@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
+import JavScribeVersions from './JavScribeVersions.vue'
 import {
   formatFileSize,
   parseCloudRelease,
   parseDesktopRelease,
   parseExtensionRelease,
+  parseMobileMetadata,
   parseMobileRelease,
   type CloudRelease,
   type DesktopRelease,
   type ExtensionRelease,
+  type MobileMetadata,
   type MobileRelease,
 } from './downloadCenter'
 
@@ -25,11 +28,13 @@ const JAVSCRIBE_RELEASES_URL = 'https://github.com/JavdBviewed/JavScribe/release
 type LoadState = 'loading' | 'ready' | 'failed'
 const extension = ref<ExtensionRelease | null>(null)
 const desktop = ref<DesktopRelease | null>(null)
+const mobileMetadata = ref<MobileMetadata | null>(null)
 const mobile = ref<MobileRelease | null>(null)
 const cloud = ref<CloudRelease | null>(null)
 const extensionState = ref<LoadState>('loading')
 const desktopState = ref<LoadState>('loading')
 const mobileState = ref<LoadState>('loading')
+const mobileDownloadState = ref<LoadState>('loading')
 const cloudState = ref<LoadState>('loading')
 
 let disposed = false
@@ -117,6 +122,32 @@ async function loadManifest<T>(
   }
 }
 
+async function loadMobileRelease(): Promise<void> {
+  try {
+    const payload = await readJson(MOBILE_MANIFEST_URL)
+    const metadata = parseMobileMetadata(payload)
+    if (!metadata) throw new Error('Invalid Android metadata')
+    if (disposed) return
+    mobileMetadata.value = metadata
+    mobileState.value = 'ready'
+
+    try {
+      const release = parseMobileRelease(payload)
+      if (!release || !(await matchesPublicRelease(metadata.tag, release.assets))) {
+        throw new Error('Android release assets are not available')
+      }
+      if (!disposed) {
+        mobile.value = release
+        mobileDownloadState.value = 'ready'
+      }
+    } catch {
+      if (!disposed) mobileDownloadState.value = 'failed'
+    }
+  } catch {
+    if (!disposed) mobileState.value = 'failed'
+  }
+}
+
 onMounted(() => {
   void loadExtensionRelease()
   void loadManifest(DESKTOP_MANIFEST_URL, parseDesktopRelease,
@@ -126,13 +157,7 @@ onMounted(() => {
       const tag = manifestTag(payload)
       return tag ? matchesPublicRelease(tag, [release.asset]) : Promise.resolve(false)
     })
-  void loadManifest(MOBILE_MANIFEST_URL, parseMobileRelease,
-    (release) => { mobile.value = release; mobileState.value = 'ready' },
-    () => { mobileState.value = 'failed' },
-    (release, payload) => {
-      const tag = manifestTag(payload)
-      return tag ? matchesPublicRelease(tag, release.assets) : Promise.resolve(false)
-    })
+  void loadMobileRelease()
   void loadManifest(CLOUD_MANIFEST_URL, parseCloudRelease,
     (release) => { cloud.value = release; cloudState.value = 'ready' },
     () => { cloudState.value = 'failed' })
@@ -194,14 +219,17 @@ onUnmounted(() => {
       <article class="product-card product-card--android">
         <div class="product-topline">
           <span class="product-mark" aria-hidden="true">AN</span>
-          <span :class="['status', mobileState === 'ready' ? 'status--released' : 'status--preview']" aria-live="polite">
-            {{ mobileState === 'ready' ? '已发布' : mobileState === 'loading' ? '查询中' : '暂不可验证' }}
+          <span :class="['status', mobileDownloadState === 'ready' ? 'status--released' : 'status--preview']" aria-live="polite">
+            {{ mobileState === 'loading' ? '版本查询中' : mobileState === 'failed' ? '版本查询失败' : mobileDownloadState === 'ready' ? '安装包已核实' : mobileDownloadState === 'loading' ? '安装包核实中' : '安装包待核实' }}
           </span>
         </div>
         <h3>Android</h3>
-        <p v-if="mobile">v{{ mobile.version }} · 按设备架构选择 APK；不确定时选通用版。</p>
-        <p v-else-if="mobileState === 'loading'">正在查询 Android 安装包。</p>
-        <p v-else>暂时无法确认安装包版本，请在发布页查看 Android 版本。</p>
+        <p v-if="mobileMetadata">v{{ mobileMetadata.version }} · 构建 {{ mobileMetadata.versionCode }}</p>
+        <p v-else-if="mobileState === 'loading'">正在查询 Android 版本清单。</p>
+        <p v-else>Android 版本查询失败，请在发布页查看版本信息。</p>
+        <p v-if="mobileMetadata && mobileDownloadState === 'loading'">正在核实公开发布的 Android 安装包，核实后提供下载。</p>
+        <p v-else-if="mobileMetadata && mobileDownloadState === 'failed'">安装包待核实，暂不提供直接下载，请在发布页确认。</p>
+        <p v-else-if="mobile">按设备架构选择 APK；不确定时选通用版。</p>
         <ul v-if="mobile" class="apk-list" aria-label="Android 安装包">
           <li v-for="asset in mobile.assets" :key="asset.abi">
             <span>{{ asset.abi === 'universal' ? '通用版' : asset.abi }} <small>{{ formatFileSize(asset.size) }}</small></span>
@@ -209,9 +237,9 @@ onUnmounted(() => {
           </li>
         </ul>
         <div class="product-actions">
-          <a v-if="mobile" class="secondary-action" :href="mobile.releaseNotesUrl" target="_blank" rel="noopener noreferrer">版本说明</a>
-          <a v-else class="secondary-action" :href="RELEASES_URL" target="_blank" rel="noopener noreferrer">查看发布页</a>
-          <a v-if="mobile" class="secondary-action" :href="MOBILE_MANIFEST_URL" target="_blank" rel="noopener noreferrer">版本数据</a>
+          <a v-if="mobileMetadata" class="secondary-action" :href="mobileMetadata.releaseNotesUrl" target="_blank" rel="noopener noreferrer">版本说明</a>
+          <a v-if="!mobile" class="secondary-action" :href="RELEASES_URL" target="_blank" rel="noopener noreferrer">查看发布页</a>
+          <a v-if="mobileMetadata" class="secondary-action" :href="MOBILE_MANIFEST_URL" target="_blank" rel="noopener noreferrer">版本数据</a>
         </div>
       </article>
 
@@ -240,7 +268,7 @@ onUnmounted(() => {
       <article class="product-card product-card--javscribe">
         <div class="product-topline"><span class="product-mark" aria-hidden="true">JS</span><span class="status status--preview">独立发布</span></div>
         <h3>JavScribe · 字幕工具</h3>
-        <p>字幕客户端和服务端分别发布；版本及安装包请以 JavScribe 发布页为准。</p>
+        <JavScribeVersions />
         <div class="product-actions">
           <a class="secondary-action" href="/javscribe/">使用文档</a>
           <a class="secondary-action" :href="JAVSCRIBE_RELEASES_URL" target="_blank" rel="noopener noreferrer">查看发布页</a>
