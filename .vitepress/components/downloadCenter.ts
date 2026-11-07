@@ -17,6 +17,13 @@ export type DesktopRelease = {
   asset: DownloadAsset
 }
 
+export type MobileMetadata = {
+  version: string
+  versionCode: number
+  tag: string
+  releaseNotesUrl: string
+}
+
 export type MobileRelease = {
   version: string
   releaseStatus: 'released'
@@ -141,14 +148,38 @@ export function parseDesktopRelease(value: unknown): DesktopRelease | null {
   }
 }
 
+export function parseMobileMetadata(value: unknown): MobileMetadata | null {
+  if (
+    !isRecord(value)
+    || value.schemaVersion !== 1
+    || value.product !== 'javdbviewed-mobile'
+    || value.channel !== 'stable'
+    || value.releaseStatus !== 'released'
+    || !isRecord(value.latest)
+  ) return null
+
+  const latest = value.latest
+  if (
+    typeof latest.version !== 'string'
+    || !/^\d+\.\d+\.\d+$/.test(latest.version)
+    || typeof latest.versionCode !== 'number'
+    || !Number.isSafeInteger(latest.versionCode)
+    || latest.versionCode <= 0
+    || latest.tag !== `mobile-v${latest.versionCode}`
+    || !isHttpUrl(latest.releaseNotesUrl)
+  ) return null
+
+  return {
+    version: latest.version,
+    versionCode: latest.versionCode,
+    tag: latest.tag,
+    releaseNotesUrl: latest.releaseNotesUrl,
+  }
+}
+
 export function parseMobileRelease(value: unknown): MobileRelease | null {
   const manifest = parseStableManifest(value, 'javdbviewed-mobile')
-  if (
-    !manifest
-    || !Number.isSafeInteger(manifest.latest.versionCode)
-    || (manifest.latest.versionCode as number) <= 0
-    || manifest.latest.tag !== `mobile-v${manifest.latest.versionCode}`
-  ) return null
+  if (!manifest || !parseMobileMetadata(value)) return null
 
   const abis = ['arm64-v8a', 'armeabi-v7a', 'x86_64', 'universal'] as const
   const assets: MobileRelease['assets'] = []
