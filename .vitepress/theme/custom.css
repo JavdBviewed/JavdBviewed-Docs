@@ -153,6 +153,24 @@
   color: #ffffff;
 }
 
+/* Five navigation groups need more room than VitePress's default 768px breakpoint. */
+@media (min-width: 768px) and (max-width: 1100px) {
+  .VPNavBar .VPNavBarMenu,
+  .VPNavBar .VPNavBarAppearance,
+  .VPNavBar .VPNavBarSocialLinks,
+  .VPNavBar .VPNavBarExtra {
+    display: none;
+  }
+
+  .VPNavBar .VPNavBarHamburger {
+    display: flex;
+  }
+
+  .VPNav .VPNavScreen {
+    display: block;
+  }
+}
+
 @media (max-width: 640px) {
   .VPHome .home-dashboard h1 {
     font-size: 40px;
