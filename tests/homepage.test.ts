@@ -80,13 +80,13 @@ describe('documentation homepage product entry', () => {
     expect(homepage).not.toContain('## 推荐阅读路线')
   })
 
-  it('labels the extension screenshot as a Preview example and lets readers inspect the full image', () => {
+  it('shows the v2.1.3 local-build dashboard and lets readers inspect the full image', () => {
     const dashboard = readProjectFile('.vitepress/components/HomeDashboard.vue')
 
-    expect(dashboard).toContain('src="/home-dashboard.png"')
-    expect(dashboard).toMatch(/<a href="\/home-dashboard\.png"[^>]*aria-label="[^"]*Preview 示例[^"]*"/)
-    expect(dashboard).toMatch(/<figcaption>[^<]*Preview 示例，非当前正式界面[^<]*<\/figcaption>/)
-    expect(dashboard).toContain('alt="浏览器扩展 Dashboard Preview 示例界面，展示数据概览"')
+    expect(dashboard).toContain('src="/extension-v2.1.3/dashboard.png"')
+    expect(dashboard).toMatch(/<a href="\/extension-v2\.1\.3\/dashboard\.png"[^>]*aria-label="[^"]*仪表盘[^"]*"/)
+    expect(dashboard).toMatch(/<figcaption>[^<]*v2\.1\.3 源码本地测试界面[^<]*隔离测试数据[^<]*非发布包实拍[^<]*<\/figcaption>/)
+    expect(dashboard).not.toContain('Preview')
   })
 
   it('keeps the extension image readable across screen widths without cropping it', () => {
@@ -97,7 +97,7 @@ describe('documentation homepage product entry', () => {
     const mobile = dashboard.split('@media (max-width: 840px)')[1]
 
     expect(extension).toMatch(/display:\s*grid/)
-    expect(extension).toMatch(/grid-template-columns:\s*minmax\(220px,\s*0\.65fr\)\s+minmax\(0,\s*1\.35fr\)/)
+    expect(extension).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)/)
     expect(preview).not.toMatch(/flex:\s*0\s+0\s+156px/)
     expect(image).toMatch(/width:\s*100%/)
     expect(image).toMatch(/height:\s*auto/)
