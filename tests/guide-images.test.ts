@@ -16,27 +16,49 @@ function section(markdown: string, heading: string): string {
   return remaining.slice(0, nextHeading === -1 ? undefined : nextHeading)
 }
 
-function png(path: string): void {
+function png(path: string, minWidth = 1, minHeight = 1): void {
   const file = resolve(root, path)
   expect(existsSync(file), `${path} must exist`).toBe(true)
   const bytes = readFileSync(file)
   expect(bytes.subarray(0, 8)).toEqual(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))
-  expect(bytes.readUInt32BE(16)).toBeGreaterThan(0)
-  expect(bytes.readUInt32BE(20)).toBeGreaterThan(0)
+  expect(bytes.readUInt32BE(16)).toBeGreaterThanOrEqual(minWidth)
+  expect(bytes.readUInt32BE(20)).toBeGreaterThanOrEqual(minHeight)
 }
 
 describe('operation guide screenshots', () => {
   it.each([
     ['guide/quick-start.md', '### 2. 打开仪表盘'],
     ['guide/interface.md', '## 仪表盘'],
-  ])('shows the Preview dashboard near the dashboard instructions in %s', (path, heading) => {
+  ])('shows the v2.1.3 local-build dashboard near the instructions in %s', (path, heading) => {
     const content = section(doc(path), heading)
-    expect(content).toContain('![扩展仪表盘')
-    expect(content).toContain('](/home-dashboard.png)')
-    expect(content).toMatch(/Preview/)
-    expect(content).toMatch(/仅作示例/)
-    expect(content).toMatch(/顶部导航.*(?:不是|不代表).*正式版本/)
-    png('public/home-dashboard.png')
+    expect(content).toContain('](/extension-v2.1.3/dashboard.png)')
+    expect(content).toContain('v2.1.3 源码本地测试界面')
+    expect(content).toContain('隔离测试数据')
+    expect(content).toContain('非发布包实拍')
+    expect(content).not.toContain('Preview')
+    png('public/extension-v2.1.3/dashboard.png', 1000, 600)
+  })
+
+  it.each([
+    ['guide/quick-start.md', '### 1. 打开扩展弹窗'],
+    ['guide/interface.md', '## 扩展弹窗'],
+  ])('places a real popup screenshot near the popup instructions in %s', (path, heading) => {
+    const content = section(doc(path), heading)
+    expect(content).toContain('](/extension-v2.1.3/popup.png)')
+    expect(content).toContain('v2.1.3 源码本地测试界面')
+    expect(content).toContain('隔离测试数据')
+    expect(content).toContain('非发布包实拍')
+    png('public/extension-v2.1.3/popup.png', 320, 400)
+  })
+
+  it('places the Cloud connection screenshot near the matching setup steps', () => {
+    const content = section(doc('guide/cloud-sync.md'), '## 连接自建 Cloud')
+    expect(content).toContain('](/extension-v2.1.3/cloud-sync.png)')
+    expect(content).toContain('[打开连接表单原图](/extension-v2.1.3/cloud-sync.png)')
+    expect(content).toContain('v2.1.3 源码本地测试界面')
+    expect(content).toContain('隔离测试数据')
+    expect(content).toContain('非发布包实拍')
+    png('public/extension-v2.1.3/cloud-sync.png', 600, 400)
   })
 
   it('removes the old JavScribe screenshot and all public references to it', () => {

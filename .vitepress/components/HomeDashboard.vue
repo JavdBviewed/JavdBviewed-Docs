@@ -62,16 +62,16 @@
         </div>
       </div>
       <figure class="home-dashboard__preview">
-        <a href="/home-dashboard.png" target="_blank" rel="noopener" aria-label="打开浏览器扩展 Dashboard Preview 示例原图">
+        <a href="/extension-v2.1.3/dashboard.png" target="_blank" rel="noopener" aria-label="打开浏览器扩展 v2.1.3 仪表盘原图">
           <img
-            src="/home-dashboard.png"
-            alt="浏览器扩展 Dashboard Preview 示例界面，展示数据概览"
+            src="/extension-v2.1.3/dashboard.png"
+            alt="浏览器扩展 v2.1.3 仪表盘：顶部导航与空态数据概览"
             width="1440"
-            height="900"
+            height="1569"
             decoding="async"
           >
         </a>
-        <figcaption>浏览器扩展 Dashboard · Preview 示例，非当前正式界面</figcaption>
+        <figcaption>v2.1.3 源码本地测试界面 · 隔离测试数据（空态）· 非发布包实拍；Unknown 表示离线时未能检查更新，点击图片查看原图</figcaption>
       </figure>
     </div>
   </section>
@@ -193,7 +193,7 @@
 }
 .home-dashboard__extension {
   display: grid;
-  grid-template-columns: minmax(220px, 0.65fr) minmax(0, 1.35fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: clamp(24px, 4vw, 48px);
   margin-top: 40px;
