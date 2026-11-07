@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
+import JavScribeVersions from './JavScribeVersions.vue'
 import {
   formatFileSize,
   parseCloudRelease,
@@ -267,7 +268,7 @@ onUnmounted(() => {
       <article class="product-card product-card--javscribe">
         <div class="product-topline"><span class="product-mark" aria-hidden="true">JS</span><span class="status status--preview">独立发布</span></div>
         <h3>JavScribe · 字幕工具</h3>
-        <p>字幕客户端和服务端分别发布；版本及安装包请以 JavScribe 发布页为准。</p>
+        <JavScribeVersions />
         <div class="product-actions">
           <a class="secondary-action" href="/javscribe/">使用文档</a>
           <a class="secondary-action" :href="JAVSCRIBE_RELEASES_URL" target="_blank" rel="noopener noreferrer">查看发布页</a>
