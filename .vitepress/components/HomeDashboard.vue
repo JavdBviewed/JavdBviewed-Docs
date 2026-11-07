@@ -53,16 +53,6 @@
     </div>
 
     <div class="home-dashboard__extension">
-      <figure class="home-dashboard__preview">
-        <img
-          src="/home-dashboard.png"
-          alt="JavdBviewed Dashboard 总览"
-          width="1440"
-          height="900"
-          decoding="async"
-        >
-        <figcaption>浏览器扩展 Dashboard</figcaption>
-      </figure>
       <div class="home-dashboard__extension-content">
         <h2>从浏览器扩展开始</h2>
         <p>在 JavDB 页面记录影片、整理清单，按需连接其他服务。</p>
@@ -71,6 +61,18 @@
           <a href="/guide/quick-start">快速开始</a>
         </div>
       </div>
+      <figure class="home-dashboard__preview">
+        <a href="/home-dashboard.png" target="_blank" rel="noopener" aria-label="打开浏览器扩展 Dashboard Preview 示例原图">
+          <img
+            src="/home-dashboard.png"
+            alt="浏览器扩展 Dashboard Preview 示例界面，展示数据概览"
+            width="1440"
+            height="900"
+            decoding="async"
+          >
+        </a>
+        <figcaption>浏览器扩展 Dashboard · Preview 示例，非当前正式界面</figcaption>
+      </figure>
     </div>
   </section>
 </template>
@@ -190,28 +192,29 @@
   overflow-wrap: anywhere;
 }
 .home-dashboard__extension {
-  display: flex;
-  align-items: center;
-  gap: 22px;
-  margin-top: 28px;
+  display: grid;
+  grid-template-columns: minmax(220px, 0.65fr) minmax(0, 1.35fr);
+  align-items: start;
+  gap: clamp(24px, 4vw, 48px);
+  margin-top: 40px;
   border-top: 1px solid var(--vp-c-divider);
-  padding-top: 22px;
+  padding-top: 32px;
 }
-.home-dashboard__preview { flex: 0 0 156px; min-width: 0; margin: 0; }
+.home-dashboard__preview { min-width: 0; margin: 0; }
+.home-dashboard__preview a { display: block; }
 .home-dashboard__preview img {
   display: block;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  height: auto;
   border: 1px solid var(--vp-c-divider);
   border-radius: 4px;
   background: var(--vp-c-bg-soft);
-  object-fit: cover;
-  object-position: top center;
 }
 .home-dashboard__preview figcaption {
-  margin-top: 5px;
+  margin-top: 8px;
   color: var(--vp-c-text-2);
-  font-size: 11px;
+  font-size: 12px;
+  line-height: 1.5;
 }
 .home-dashboard__extension-content { min-width: 0; }
 .home-dashboard__extension h2 {
@@ -219,18 +222,19 @@
   border: 0;
   padding: 0;
   color: var(--vp-c-text-1);
-  font-size: 17px;
+  font-size: 22px;
+  line-height: 1.4;
 }
 .home-dashboard__extension p {
-  margin: 5px 0 10px;
+  margin: 12px 0 20px;
   color: var(--vp-c-text-2);
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 15px;
+  line-height: 1.7;
 }
 .home-dashboard__extension-links { display: flex; flex-wrap: wrap; gap: 8px 18px; }
 .home-dashboard__extension-links a {
   color: var(--vp-c-brand-1);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   text-decoration: none;
 }
@@ -243,6 +247,7 @@
   .home-dashboard__intro { grid-template-columns: minmax(0, 1fr); gap: 22px; }
   .home-dashboard__content { padding: 0; }
   .home-dashboard__products { padding: 16px 18px 6px; }
+  .home-dashboard__extension { grid-template-columns: minmax(0, 1fr); gap: 22px; }
 }
 @media (max-width: 480px) {
   .home-dashboard { margin-top: 24px; }
@@ -253,8 +258,7 @@
     margin-top: 20px;
   }
   .home-dashboard__action { padding: 0 10px; }
-  .home-dashboard__extension { align-items: flex-start; gap: 14px; }
-  .home-dashboard__preview { flex-basis: 94px; }
+  .home-dashboard__extension { margin-top: 28px; padding-top: 24px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .home-dashboard__action { transition: none; }
