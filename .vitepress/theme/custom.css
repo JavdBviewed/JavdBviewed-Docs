@@ -1,0 +1,200 @@
+/* Product manual palette. Keep VitePress semantic tokens as the component API. */
+:root {
+  --vp-font-family-base: -apple-system, BlinkMacSystemFont, 'PingFang SC',
+    'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans SC', sans-serif;
+  --vp-font-family-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+
+  --vp-c-bg: #ffffff;
+  --vp-c-bg-alt: #f6f8fc;
+  --vp-c-bg-elv: #ffffff;
+  --vp-c-bg-soft: #f1f5fb;
+  --vp-c-text-1: #172b4d;
+  --vp-c-text-2: #52627a;
+  --vp-c-text-3: #63738c;
+  --vp-c-divider: #dfe6ef;
+  --vp-c-border: #cbd6e6;
+  --vp-c-gutter: #dfe6ef;
+  --vp-c-brand-1: #315bce;
+  --vp-c-brand-2: #254db6;
+  --vp-c-brand-3: #315bce;
+  --vp-c-brand-soft: rgb(49 91 206 / 10%);
+  --vp-code-bg: #f1f5fb;
+  --vp-code-block-bg: #f1f5fb;
+}
+
+.dark {
+  --vp-c-bg: #131d2b;
+  --vp-c-bg-alt: #101926;
+  --vp-c-bg-elv: #233044;
+  --vp-c-bg-soft: #1d2a3b;
+  --vp-c-text-1: #e9effa;
+  --vp-c-text-2: #b6c5d9;
+  --vp-c-text-3: #a3b4cb;
+  --vp-c-divider: #33435a;
+  --vp-c-border: #495a73;
+  --vp-c-gutter: #33435a;
+  --vp-c-brand-1: #a8c0ff;
+  --vp-c-brand-2: #c7d6ff;
+  --vp-c-brand-3: #315bce;
+  --vp-c-brand-soft: rgb(117 155 255 / 16%);
+  --vp-button-brand-hover-bg: #416bdb;
+  --vp-button-brand-active-bg: #254db6;
+  --vp-code-bg: #1d2a3b;
+  --vp-code-block-bg: #1d2a3b;
+}
+
+/* Let the information hierarchy do the work on the home screen. */
+.VPHome {
+  background-color: var(--vp-c-bg-alt);
+}
+
+.VPHome .VPHomeContent {
+  color: var(--vp-c-text-1);
+}
+
+.VPHome .home-dashboard h1 {
+  font-family: 'Noto Sans CJK SC', 'PingFang SC', var(--vp-font-family-base);
+  font-size: 48px;
+  letter-spacing: 0;
+}
+
+.VPHome .home-dashboard__summary {
+  font-size: 26px;
+  letter-spacing: 0;
+}
+
+.VPDoc .content-container {
+  max-width: 720px;
+}
+
+.VPDoc .vp-doc {
+  color: var(--vp-c-text-1);
+  font-size: 16px;
+  line-height: 1.75;
+  overflow-wrap: break-word;
+}
+
+.VPDoc .vp-doc :is(h1, h2, h3, h4) {
+  font-family: 'Noto Sans CJK SC', 'PingFang SC', var(--vp-font-family-base);
+  letter-spacing: 0;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.VPDoc .vp-doc h1 {
+  font-size: 32px;
+}
+
+.VPDoc .vp-doc h2 {
+  font-size: 24px;
+}
+
+.VPDoc .vp-doc :is(p, li) {
+  line-height: 1.75;
+}
+
+.VPDoc .vp-doc :is(div[class*='language-'], .vp-code-group) {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.VPDoc .vp-doc table {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.VPDoc .vp-doc :is(pre, code) {
+  font-family: var(--vp-font-family-mono);
+}
+
+/* Sidebar labels remain distinguishable even in deeply nested settings. */
+.VPSidebar .VPSidebarItem.level-0 > .item > :is(.text, .link > .text) {
+  color: var(--vp-c-text-1);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.VPSidebar .VPSidebarItem.level-1 > .item > :is(.text, .link > .text) {
+  font-weight: 600;
+}
+
+.VPSidebar .VPSidebarItem:is(.level-2, .level-3, .level-4) > .item .text {
+  font-size: 13px;
+}
+
+.VPSidebar .VPSidebarItem.is-active > .item .text {
+  color: var(--vp-c-brand-1);
+}
+
+.VPNavBarSearch :is(button, input),
+.VPNavScreen :is(a, button, [role='button']),
+.VPLocalSearchBox :is(button, input) {
+  font-family: var(--vp-font-family-base);
+}
+
+:is(.VPDoc, .VPHome, .VPNav, .VPSidebar, .VPLocalSearchBox)
+  :is(a, button, input, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 3px;
+}
+
+/* Scoped component buttons currently use brand-1 as their fill. */
+.dark .home-dashboard__action--primary,
+.dark .download-center .primary-action {
+  background-color: var(--vp-c-brand-3);
+  border-color: var(--vp-c-brand-3);
+  color: #ffffff;
+}
+
+.dark .home-dashboard__action--primary:hover,
+.dark .download-center .primary-action:hover {
+  background-color: #416bdb;
+  border-color: #416bdb;
+  color: #ffffff;
+}
+
+/* Five navigation groups need more room than VitePress's default 768px breakpoint. */
+@media (min-width: 768px) and (max-width: 1100px) {
+  .VPNavBar .VPNavBarMenu,
+  .VPNavBar .VPNavBarAppearance,
+  .VPNavBar .VPNavBarSocialLinks,
+  .VPNavBar .VPNavBarExtra {
+    display: none;
+  }
+
+  .VPNavBar .VPNavBarHamburger {
+    display: flex;
+  }
+
+  .VPNav .VPNavScreen {
+    display: block;
+  }
+}
+
+@media (max-width: 640px) {
+  .VPHome .home-dashboard h1 {
+    font-size: 40px;
+  }
+
+  .VPHome .home-dashboard__summary {
+    font-size: 21px;
+  }
+
+  .VPDoc .vp-doc h1 {
+    font-size: 28px;
+  }
+
+  .VPDoc .vp-doc h2 {
+    font-size: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.VPDoc, .VPHome, .VPNav, .VPSidebar, .VPLocalSearchBox) *,
+  :is(.VPDoc, .VPHome, .VPNav, .VPSidebar, .VPLocalSearchBox) *::before,
+  :is(.VPDoc, .VPHome, .VPNav, .VPSidebar, .VPLocalSearchBox) *::after {
+    scroll-behavior: auto;
+    animation-duration: 0.01ms;
+    transition-duration: 0.01ms;
+  }
+}

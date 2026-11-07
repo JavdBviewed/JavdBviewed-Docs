@@ -15,3 +15,6 @@ Thumbs.db
 npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
+
+# Local task records
+.trellis/

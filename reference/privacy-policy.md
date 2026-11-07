@@ -1,215 +1,51 @@
-# 隐私政策 / Privacy Policy
+# 数据与隐私说明 / Data and Privacy
 
-**最后更新日期 / Last Updated**: 2025年1月19日 / January 19, 2025
+**核对日期 / Reviewed:** 2026-11-07. 本页按已核实的浏览器扩展 `v2.1.3` 和自建 Cloud `1.2.9` 说明数据流；不将扩展的存储、遥测或控制方式推断为桌面端、Android 或 JavScribe 的实现。后续版本可能变化，请以相应版本的发布说明为准。
 
----
+## 中文
 
-## 中文版
+### 浏览器扩展：本地业务数据
 
-### 1. 概述
+扩展将观看标记、番号和演员记录、清单、设置及部分运行数据保存在浏览器本地，包括 Chrome Storage 和 IndexedDB；**并非所有数据都只存在 Chrome Storage**。本地保存不意味着绝不发送网络请求。备份文件可能包含连接配置或凭据，应当像密码一样妥善保管，不要上传到公开 Issues。
 
-Jav 助手（以下简称"本扩展"）尊重并保护用户的隐私。本隐私政策说明了本扩展如何收集、使用、存储和保护您的信息。
+使用者主动配置或使用下列功能时，扩展会与对应服务通信：
 
-### 2. 开发者信息
+- [WebDAV 备份与恢复](/guide/webdav-sync)会向你配置的 WebDAV 服务传输备份数据；[Cloud 记录同步](/guide/cloud-sync)会与所连接的自建 Cloud 交换扩展支持的记录和设置。两条路径相互独立，不会因浏览器本地存储而自动停止。
+- [115 网盘](/guide/115-drive)、[Emby / Jellyfin 媒体库](/guide/media-library)和网页增强依赖相应的网站或媒体服务器；搜索、AI 翻译等功能在启用和使用时可能向所配置的外部服务发送完成请求所需的数据。具体发送范围取决于所选功能与服务设置。
+- Cloud 同步的是支持的记录和设置，不会把本地视频文件自动上传到 Cloud；媒体服务器取流是另一条连接链路。
 
-- **扩展名称**: Jav 助手
-- **开发者**: lmixture
-- **联系方式**: [GitHub Issues](https://github.com/JavdBviewed/JavdBviewed/issues)
+### 浏览器扩展：后台遥测
 
-### 3. 数据收集
+已发布 `v2.1.3` 的扩展实现了启动、定期心跳和受限错误上报，成功发送取决于网络和报告端点是否可用；**不能描述为“不收集或传输任何数据”**。报告字段包括安装标识、可选设备标识、事件及会话标识、扩展版本与构建号、浏览器/平台及其版本、语言和时区、活动时间与时长、功能是否启用、作品/演员/订阅等数量**区间**，以及部分设置的计数区间。这些标识和环境信息不应被称为“完全匿名”。
 
-本扩展**不会**收集、传输或分享任何可识别个人身份的信息。本扩展仅在您的本地浏览器中存储以下数据：
+错误事件可包含组件、错误代码、错误类别、是否严重以及由预处理后堆栈生成的哈希；不是直接上传完整原始堆栈。所核对的遥测构造器按区间统计记录数量，不把作品标题或观看记录正文作为这些计数字段发送。**旧版设置中的 `telemetry.enabled` 不再是 `v2.1.3` 的发送门禁**；不要将关闭该旧开关写成停止上报的方法。本页不承诺未核实的遥测关闭方式、服务端实际留存期限或已发送事件可由本地删除操作撤回。
 
-#### 3.1 本地存储的数据
-- **视频标记数据**: 您标记为"已浏览"、"已观看"或"想看"的视频番号
-- **演员信息**: 您添加到演员库的演员名称和相关信息
-- **用户设置**: 扩展的配置选项，如显示样式、同步设置等
-- **WebDAV 配置**: 如果您启用了 WebDAV 同步功能，会存储服务器地址、用户名和密码（加密存储）
-- **115网盘配置**: 如果您启用了115网盘功能，会存储相关的配置信息
-- **操作日志**: 扩展的操作记录，用于调试和问题排查
+### 自建 Cloud 与其他产品
 
-所有这些数据都存储在您的浏览器本地存储（Chrome Storage API）中，**不会**上传到任何第三方服务器。
+自建 Cloud `1.2.9` 在实例内保存其账号、设备、同步数据与运行信息，由实例运营者管理；Cloud 另向开发方服务发送低频实例健康上报，包括稳定实例标识、版本、健康状态与实例级设备数量，不是同步业务记录或媒体文件。**Cloud 健康上报与客户端业务数据同步是两条不同的数据流。** 升级 Cloud 时，数据库与 `vault.key` 必须一起备份和恢复；见[备份与升级](/cloud/backup-upgrade)。
 
-### 4. 数据使用
+本页没有核实开发方 Server 当前生产部署的保留期限，也不为桌面、Android 或 JavScribe 作“仅本地保存”“完全匿名”或“不会遥测”的统一承诺。分别阅读[产品入口](/start/)与相应产品文档。提交问题时请移除账号、令牌、备份及私人记录：[扩展 Issues](https://github.com/JavdBviewed/JavdBviewed/issues)。
 
-本扩展使用收集的数据仅用于以下目的：
+## English
 
-- **功能实现**: 在 JavDB 网站上显示视频的观看状态标记
-- **数据管理**: 提供番号库、演员库的管理功能
-- **云端同步**: 如果您启用了 WebDAV 同步，数据会同步到您自己配置的 WebDAV 服务器
-- **115网盘集成**: 如果您启用了115网盘功能，会与115网盘服务进行交互以推送磁力链接
+**Scope:** This page describes the verified browser extension `v2.1.3` and self-hosted Cloud `1.2.9` as reviewed on November 7, 2026. It does not claim that the desktop, Android, or JavScribe products use the same storage, telemetry, or controls. Check the release notes of the version you use.
 
-### 5. 数据共享
+### Extension: local data and external services
 
-本扩展**不会**与任何第三方共享您的数据，除非：
+The extension stores watch marks, video and actor records, lists, settings, and some operational data locally in the browser, using both Chrome Storage and IndexedDB. **Not all data is stored only in Chrome Storage, and local storage does not mean that the extension never communicates with a server.** Exported backups may contain connection settings or credentials; do not post them publicly.
 
-- **WebDAV 同步**: 如果您主动启用了 WebDAV 同步功能，数据会上传到您自己配置的 WebDAV 服务器（如坚果云、TeraCloud、Yandex 等）。这是您主动选择的行为，数据传输到您自己控制的服务器。
-- **115网盘服务**: 如果您启用了115网盘功能，扩展会与115.com的服务器通信以实现磁力链接推送功能。
+- If configured, [WebDAV backup and restore](/guide/webdav-sync) transfers backups to the selected WebDAV service. [Cloud record sync](/guide/cloud-sync) exchanges supported records and settings with the self-hosted Cloud instance. These are separate workflows.
+- [115 Drive](/guide/115-drive), [Emby/Jellyfin media libraries](/guide/media-library), and website enhancements contact their respective services. Search and AI translation may send the data required for a request to configured providers when used. The data involved depends on the enabled feature and service settings.
+- Cloud record synchronization does not automatically upload local video files. Streaming from a media server is a separate connection.
 
-### 6. 第三方服务
+### Extension: background telemetry
 
-本扩展可能会访问以下第三方服务（仅在您启用相关功能时）：
+The released extension `v2.1.3` implements startup, periodic heartbeat, and limited error reporting; delivery depends on network and endpoint availability. Payload fields include an installation identifier, optional device identifier, event and session identifiers, extension version and build, browser and platform details, locale and timezone, activity timestamps and duration, feature-enabled flags, **bucketed** counts of video records, actors and subscriptions, and other bucketed configuration counts. Because identifiers and environment details are included, this should **not** be described as fully anonymous.
 
-- **JavDB.com**: 扩展的主要工作网站，用于显示视频标记
-- **WebDAV 服务**: 如坚果云、TeraCloud、Yandex、Nextcloud、OwnCloud 等（仅在您配置并启用同步功能时）
-- **115.com**: 115网盘服务（仅在您启用115网盘功能时）
-- **磁力搜索网站**: 如 sukebei.nyaa.si、btdig.com、btsow.com、torrentz2.eu 等（仅在您使用磁力搜索功能时）
+Error reports may include component, code, error class, fatal flag, and a hash derived from a sanitized stack, **not the full raw stack**. The reviewed telemetry builder uses bucketed record counts rather than sending video titles or watch-record bodies as those metrics. In `v2.1.3`, the legacy `telemetry.enabled` setting is **not** a sending gate; disabling that old setting must not be presented as an opt-out. This page does not claim an unverified opt-out, production retention period, or that deleting local data retracts reports already sent.
 
-这些第三方服务有各自的隐私政策，本扩展不对这些服务的隐私实践负责。
+### Self-hosted Cloud and other products
 
-### 7. 数据安全
+A self-hosted Cloud `1.2.9` instance stores its own account, device, synchronization, and operational data under the instance operator's control. It separately sends low-frequency instance health reports to a developer-operated service, including a stable instance identifier, version, health status, and instance-level device counts; this is **not** the synchronized business data or video files. The Cloud database and `vault.key` must be backed up and restored together when upgrading; see [backup and upgrade](/cloud/backup-upgrade).
 
-本扩展采取以下措施保护您的数据：
-
-- **本地存储**: 所有数据默认存储在浏览器本地，不上传到任何服务器
-- **加密传输**: 与 WebDAV 服务器和115网盘的通信使用 HTTPS 加密
-- **权限最小化**: 扩展仅请求必要的浏览器权限
-- **开源透明**: 本扩展的源代码在 GitHub 上公开，任何人都可以审查
-
-### 8. 数据控制
-
-您对自己的数据拥有完全控制权：
-
-- **查看数据**: 在扩展的设置面板中查看所有存储的数据
-- **导出数据**: 随时导出您的数据为 JSON 文件
-- **删除数据**: 在设置面板中清除所有数据，或卸载扩展以删除所有本地数据
-- **禁用功能**: 可以随时禁用 WebDAV 同步或115网盘功能
-
-### 9. 权限说明
-
-本扩展请求以下浏览器权限：
-
-- **storage**: 在本地存储您的标记数据和设置
-- **tabs**: 检测当前标签页的 URL，以便在正确的页面上工作
-- **alarms**: 用于定时自动同步功能
-- **scripting**: 在网页中注入脚本以显示标记
-- **notifications**: 显示操作结果通知
-- **unlimitedStorage**: 存储大量的视频标记数据
-- **declarativeNetRequest**: 优化网络请求
-- **host_permissions**: 访问 JavDB、WebDAV 服务器、115网盘等网站
-
-这些权限仅用于实现扩展的核心功能，不会用于其他目的。
-
-### 10. 儿童隐私
-
-本扩展不适用于18岁以下的用户。我们不会故意收集儿童的个人信息。
-
-### 11. 隐私政策更新
-
-我们可能会不时更新本隐私政策。更新后的政策将在 GitHub 仓库中发布，并在扩展更新时通知用户。
-
-### 12. 联系我们
-
-如果您对本隐私政策有任何疑问或建议，请通过以下方式联系我们：
-
-- **GitHub Issues**: https://github.com/JavdBviewed/JavdBviewed/issues
-- **GitHub Discussions**: https://github.com/JavdBviewed/JavdBviewed/discussions
-
----
-
-## English Version
-
-### 1. Overview
-
-Jav Assistant (hereinafter referred to as "this extension") respects and protects user privacy. This privacy policy explains how this extension collects, uses, stores, and protects your information.
-
-### 2. Developer Information
-
-- **Extension Name**: Jav Assistant
-- **Developer**: lmixture
-- **Contact**: [GitHub Issues](https://github.com/JavdBviewed/JavdBviewed/issues)
-
-### 3. Data Collection
-
-This extension **does not** collect, transmit, or share any personally identifiable information. The extension only stores the following data locally in your browser:
-
-#### 3.1 Locally Stored Data
-- **Video Marking Data**: Video IDs you marked as "browsed", "watched", or "want to watch"
-- **Actor Information**: Actor names and related information you added to the actor library
-- **User Settings**: Extension configuration options, such as display styles, sync settings, etc.
-- **WebDAV Configuration**: If you enable WebDAV sync, server address, username, and password (encrypted storage)
-- **115 Cloud Configuration**: If you enable 115 cloud features, related configuration information
-- **Operation Logs**: Extension operation records for debugging and troubleshooting
-
-All this data is stored in your browser's local storage (Chrome Storage API) and is **not** uploaded to any third-party servers.
-
-### 4. Data Usage
-
-This extension uses collected data only for the following purposes:
-
-- **Feature Implementation**: Display video watch status marks on JavDB website
-- **Data Management**: Provide video library and actor library management features
-- **Cloud Sync**: If you enable WebDAV sync, data will be synced to your configured WebDAV server
-- **115 Cloud Integration**: If you enable 115 cloud features, interact with 115 cloud service to push magnet links
-
-### 5. Data Sharing
-
-This extension **does not** share your data with any third parties, except:
-
-- **WebDAV Sync**: If you actively enable WebDAV sync, data will be uploaded to your configured WebDAV server (such as Jianguoyun, TeraCloud, Yandex, etc.). This is your voluntary action, and data is transmitted to servers you control.
-- **115 Cloud Service**: If you enable 115 cloud features, the extension will communicate with 115.com servers to implement magnet link push functionality.
-
-### 6. Third-Party Services
-
-This extension may access the following third-party services (only when you enable related features):
-
-- **JavDB.com**: The main working website of the extension, used to display video marks
-- **WebDAV Services**: Such as Jianguoyun, TeraCloud, Yandex, Nextcloud, OwnCloud, etc. (only when you configure and enable sync)
-- **115.com**: 115 cloud service (only when you enable 115 cloud features)
-- **Magnet Search Sites**: Such as sukebei.nyaa.si, btdig.com, btsow.com, torrentz2.eu, etc. (only when you use magnet search)
-
-These third-party services have their own privacy policies, and this extension is not responsible for their privacy practices.
-
-### 7. Data Security
-
-This extension takes the following measures to protect your data:
-
-- **Local Storage**: All data is stored locally in the browser by default, not uploaded to any server
-- **Encrypted Transmission**: Communication with WebDAV servers and 115 cloud uses HTTPS encryption
-- **Minimal Permissions**: The extension only requests necessary browser permissions
-- **Open Source Transparency**: The extension's source code is publicly available on GitHub for anyone to review
-
-### 8. Data Control
-
-You have complete control over your data:
-
-- **View Data**: View all stored data in the extension's settings panel
-- **Export Data**: Export your data as a JSON file at any time
-- **Delete Data**: Clear all data in the settings panel, or uninstall the extension to delete all local data
-- **Disable Features**: You can disable WebDAV sync or 115 cloud features at any time
-
-### 9. Permission Explanation
-
-This extension requests the following browser permissions:
-
-- **storage**: Store your marking data and settings locally
-- **tabs**: Detect the current tab's URL to work on the correct page
-- **alarms**: Used for scheduled automatic sync
-- **scripting**: Inject scripts into web pages to display marks
-- **notifications**: Display operation result notifications
-- **unlimitedStorage**: Store large amounts of video marking data
-- **declarativeNetRequest**: Optimize network requests
-- **host_permissions**: Access JavDB, WebDAV servers, 115 cloud, and other websites
-
-These permissions are only used to implement the extension's core features and will not be used for other purposes.
-
-### 10. Children's Privacy
-
-This extension is not intended for users under 18 years old. We do not knowingly collect personal information from children.
-
-### 11. Privacy Policy Updates
-
-We may update this privacy policy from time to time. Updated policies will be published in the GitHub repository and users will be notified when the extension is updated.
-
-### 12. Contact Us
-
-If you have any questions or suggestions about this privacy policy, please contact us through:
-
-- **GitHub Issues**: https://github.com/JavdBviewed/JavdBviewed/issues
-- **GitHub Discussions**: https://github.com/JavdBviewed/JavdBviewed/discussions
-
----
-
-**注意 / Note**: 本隐私政策适用于 Jav 助手浏览器扩展。使用本扩展即表示您同意本隐私政策的条款。
-
-**Note**: This privacy policy applies to the Jav Assistant browser extension. By using this extension, you agree to the terms of this privacy policy.
+Production retention on the developer-operated Server has not been verified here. This page makes no blanket “local only,” “fully anonymous,” or “no telemetry” claim for desktop, Android, or JavScribe; use the [product guide](/start/) for the relevant product. Remove credentials, tokens, backups, and private records before posting to [extension Issues](https://github.com/JavdBviewed/JavdBviewed/issues).

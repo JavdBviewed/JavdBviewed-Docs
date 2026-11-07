@@ -5,27 +5,16 @@
 
 部署分两步：**先部署服务端**（跑在 GPU 机器上，headless），**再部署客户端**
 （Docker Web 或桌面安装版，用户入口）。两者可以同机，也可以分机；
-客户端与多种形态见 [§4](#4-部署客户端)。配置项全量清单（服务端环境变量 /
+客户端与多种形态见 [部署客户端](#deploy-client)。配置项全量清单（服务端环境变量 /
 config.json / 服务设置白名单 / 客户端本机设置）见 [配置参考](./config)。
 
-## 快速开始（两命令）
+## 先选择发布来源
 
-服务端（GPU 机器，有 Docker）：
+客户端 `client-v0.2.66` 有公开正式 Release，Web 与桌面端共用 `client-v*` 版本体系，**没有独立 `web-v*` tag**。服务端 `serve-v0.2.16` 已核实源码 tag 的行为，但对应公开 Release 安装包未核到；不能仅凭 tag 或下方 Compose 中的 `:latest` 断言存在可用的该版本预构建镜像。请先查看 [JavScribe Releases](https://github.com/JavdBviewed/JavScribe/releases) 当次的服务端资产与镜像说明。要复现本文提到的 `serve-v0.2.16` 行为，使用该源码 tag 自行构建，不能以公开旧版服务端包替代。
 
-```bash
-git clone https://github.com/JavdBviewed/JavScribe.git /opt/JavScribe && cd /opt/JavScribe/docker
-JAVSCRIBE_API_KEY="$(openssl rand -hex 16)" docker compose up -d   # 首启自动下模型 ~3.4G
-```
+服务端固定源码部署：在自己的服务端工作目录取得 `serve-v0.2.16` tag，检查 `docker/docker-compose.yml` 的 `build` 上下文、持久卷、监听端口及 GPU 需求，再按“部署字幕服务”构建；客户端 Web 在**单独的工作目录**取得 `client-v0.2.66` tag，使用 `web/docker/docker-compose.yml` 从本地构建。两套 Compose 是独立项目，不要把不同 tag 的代码混用为一套不经检查的单机文件。
 
-客户端（Web 形态，任意内网机器；装桌面版则直接下载 exe/AppImage 即可）：
-
-```bash
-cd /opt/JavScribe/web
-JAV_ENGINES="我的服务=http://<服务端IP>:8300" docker compose -f docker/docker-compose.yml up -d --build
-# 浏览器打开 http://<本机>:8400 → 服务卡片「⚙ 服务设置」填刚才的 API Key → 扫描目录入队
-```
-
-其余细节按下面章节展开。
+同机部署时，Web 容器中的 `127.0.0.1` 指 Web 容器自身，**不是** Serve 容器；使用 Web 容器实际可访问的 Serve 地址，并限制服务仅内网/VPN 可达。客户端部署目录和模型、媒体目录应分别核对，不能将服务器文件路径误当浏览器电脑路径。
 
 ## 1. 硬件要求
 
@@ -116,38 +105,36 @@ whisper-large-v2 原模型为 MIT）。使用前请阅读 Hugging Face 模型卡
 前置：Docker + compose v2 + nvidia-container-toolkit（自检：
 `docker run --rm --gpus all nvidia/cuda:12.8.0-base-ubuntu24.04 nvidia-smi`）。
 
-**CI 预构建镜像（推荐，服务端免构建）**：`serve-v*` tag 触发 CI 发布
-`ghcr.io/javdbviewed/jav-scribe-serve` 镜像，compose 已默认指向它：
+固定 tag `serve-v0.2.16` 的 `docker/docker-compose.yml` 中，服务端镜像字段为
+`ghcr.io/javdbviewed/jav-scribe-serve:latest`，并保留本地 `build` 配置；
+**该源码 tag 并不能证明对应 GHCR 镜像或公开 Release 资产已上线**。
+选择该源码版本时，请从单独工作目录检出 `serve-v0.2.16`，先核实模型和持久卷配置，再本地构建：
 
 ```bash
-# 1. 代码（只需要 compose 文件）
-git clone https://github.com/JavdBviewed/JavScribe.git /opt/JavScribe && cd /opt/JavScribe/docker
-
-# 2. 拉取预构建镜像并启动（JAV_WATCH_DIR 改成你的影片落盘目录）
-JAV_WATCH_DIR=/your/media/dir \
-JAVSCRIBE_API_KEY="$(openssl rand -hex 16)" \
-docker compose pull && docker compose up -d
+# 在独立的 JavScribe 服务端源码工作目录，已检出 serve-v0.2.16
+# 先为 JAVSCRIBE_API_KEY、JAV_WATCH_DIR 等配置真实值并确认持久化
+docker compose -f docker/docker-compose.yml up -d --build
 ```
 
-离线 / 改引擎版本时本地构建：`docker compose up -d --build`（build 段仍保留）。
-首启自动下载模型（~3.4G）到宿主机 volume。
+这是需自行准备环境与配置的**源码构建示例**，不是可直接复制的服务端安装脚本；缺少引擎、模型或 GPU 环境时先按本页下文逐项处理。使用预构建镜像前，必须另外核对该镜像的公开来源与实际版本，不要将 `latest` 视为 `serve-v0.2.16`。
 
-**`JAVSCRIBE_API_KEY`（强烈建议首启就设）**：`/config`（服务设置）与
-`/scan`（扫描目录）的鉴权 Key。不设也能跑任务/看看板，但客户端的
-「⚙ 服务设置」「扫描目录」会提示「该服务尚未设置 API Key」。
-设了之后在客户端登记服务时填同一个值。
+**`JAVSCRIBE_API_KEY`（强烈建议首启就设）**：服务端 `/config` 与服务端
+`/scan` 等接口的鉴权 Key；在客户端登记服务时填同一个值以使用受保护的服务设置。
+`client-v0.2.66` 工作台的「扫描目录」由**客户端部署机本地扫描**完成，
+不能把该按钮描述成必须调用服务端 `/scan` 或必须设置此 Key。
+**该 Key 不保护整个服务**：上传、进度等接口仍可能不要求 Key，绝不应当把服务直接暴露到公网。
 
 常用环境变量（全量清单见 [配置参考](./config)）：
 
 | 变量 | 默认 | 说明 |
 |---|---|---|
-| `JAVSCRIBE_API_KEY` | 空（不鉴权） | `/config`、`/scan` 鉴权 Key，**想用端「服务设置」「扫描目录」必须设置** |
+| `JAVSCRIBE_API_KEY` | 空 | 服务端 `/config`、`/scan` 等受保护接口的 Key，不是全站登录；新版工作台本地扫描不依赖服务端 `/scan` |
 | `JAV_WATCH_DIR` | `/media/jav` | 监听目录（BT/PT 落盘处），`.zh.srt` 生成在同级 |
 | `JAV_MODELS_DIR` | `/opt/jav-scribe/models` | 模型权重存放目录（volume，跨重建保留） |
 | `JAV_DATA_DIR` | `/opt/jav-scribe/data` | 持久化数据目录：活动 profile 配置 + inbox（音轨/字幕缓存） |
 | `JAV_PORT` | `8300` | 进度/上传 API 宿主机端口 |
-| `JAVSCRIBE_HOST_ROOT` | 空 | 容器化扫描映射，建议 `/hostfs`（见下） |
-| `JAV_PROXY` | 空 | 外网代理地址（如 `http://192.168.0.1:10808`），首启下模型等外网出站走代理（见下） |
+| `JAVSCRIBE_HOST_ROOT` | 空 | Serve `/scan` 和 Web 工作台本地扫描分别在各自容器内解析宿主机路径；须在对应容器中配置并挂载目录（见下） |
+| `JAV_PROXY` | 空 | 外网代理地址（占位示例 `http://proxy.example.com:10808`），首启下模型等外网出站走代理（见下） |
 | `JAV_NO_PROXY` | 空 | 追加不走代理的地址（逗号分隔，支持 CIDR）；内网网段默认已豁免 |
 
 **服务器访问不了 HuggingFace 时离线放模型**：在有网机器上跑 ChickenRice 的
@@ -166,7 +153,7 @@ models/
 设置代理地址，首启的模型下载（~3.4G）与容器内其他外网出站都会走代理：
 
 ```bash
-JAV_PROXY=http://192.168.0.1:10808 \
+JAV_PROXY=http://proxy.example.com:10808 \
 JAV_WATCH_DIR=/your/media/dir \
 docker compose up -d
 ```
@@ -177,10 +164,19 @@ docker compose up -d
 - 非 Docker 部署（手动 / exe）：导出 `HTTPS_PROXY`/`HTTP_PROXY` 即可，引擎模型
   下载（HF → hf-mirror 回退 + 429 重试）遵循系统代理。
 
-**容器化扫描宿主机目录**：compose 默认把宿主机根**只读**挂载在容器 `/hostfs`
-（仅 `/scan` 链路可达，且需 API Key）。设置 `JAVSCRIBE_HOST_ROOT=/hostfs` 后，
-扫描/入队对「容器内不存在的路径」会自动映射到宿主机同名路径，前端可以直接填
-服务器上的目录（如 `/media/jav`）。
+**路径映射分属两个容器**：固定 `serve-v0.2.16` 的 Compose 默认把服务端宿主机根目录
+只读挂载到 Serve 容器 `/hostfs`。在 **Serve 容器**设置 `JAVSCRIBE_HOST_ROOT=/hostfs`
+后，服务端 `/scan` 对容器内不存在的路径可尝试映射到该宿主机目录。此接口受服务端
+API Key 保护；宿主机根目录挂载仍有暴露风险，不要仅为工作台本地扫描开启它。
+
+`client-v0.2.66` 的 **Web 工作台**「扫描目录（客户端部署机）」则在 **Web 容器**
+读取自己的 `JAVSCRIBE_HOST_ROOT`：路径在容器内不存在时，才尝试解析 Web 容器已挂载
+的宿主机路径。两个容器即使同机也不会共享变量或卷；Serve 的挂载不能让 Web 容器
+读取媒体文件。Web Compose 默认只挂载 `/data`，如需扫描影片，请按实际客户端部署机
+目录在 **Web Compose** 中明确挂载媒体路径，并确认 Web 容器内进程有对应读权限。
+若映射仅为只读，扫描可以列出文件，但完成的字幕**不能写回**该源目录；需要自动落位
+时，应在限定的目标媒体目录上有意识地配置读写挂载、核对容器用户权限，避免为方便
+写回而暴露整个宿主机根目录。文件路径的两个入口详见[工作台](./workbench)。
 
 ### Linux 手动（非 Docker）
 
@@ -213,52 +209,29 @@ uv run jav-scribe upload "D:\Videos\JAV\XXX-123.ts" --remote http://<服务器>:
 
 ### 服务端升级
 
-```bash
-cd /opt/JavScribe/docker
-docker compose pull      # 拉新版镜像；或把 image 钉到具体 tag（如 :v0.2.5）
-docker compose up -d     # 重建容器
-```
-
-- 数据卷保留活动配置与 inbox，模型卷不受影响（不重复下载）；
-- **任务状态随重启清空**（服务端内存设计，见 [常见问题](./faq)）——
-  升级前建议先在客户端「⏸ 暂停所有」，升级后「▶ 继续任务」；
+- 升级前备份服务端持久化配置、任务历史数据目录、模型卷与工作台服务登记表；确认所选版本的公开 Release/源码 tag 与 Compose 配置。不要对 `serve-v0.2.16` 直接执行 `docker compose pull` 并将 `:latest` 当成该版本。
+- **仅针对 `serve-v0.2.16` 源码/自行构建版本**：服务端把任务历史保存到持久数据目录的 `jobs.json`；重启后只恢复文件中已处于终态的任务历史（受历史上限和清理影响），**未完成/在途任务不会恢复执行，需重新提交**。这不是对其他公开旧版安装包的承诺，升级前应尽量等待在途任务完成。
+- 保留 Compose 配置中的服务端数据卷与模型卷；本地构建需先核对该版本源码及配置，重建后核对 `/health`、任务历史和实际输出。仅“暂停所有”不会让在途任务在重启后自动续跑，详情见[常见问题](./faq)。
 - 版本比对：客户端服务卡片会显示服务端当前版本与最新版本（落后时提示）。
 
-## 4. 部署客户端
+## 4. 部署客户端 {#deploy-client}
 
 客户端是同一产品、两种形态（界面/交互/版本号完全一致，同号同 commit 发布）：
-**Docker（Web，默认端口 8400）** 与 **桌面安装版**（从 GitHub Release 下载
-exe / AppImage / deb，装哪台电脑，扫描与写回就以哪台为准）。
+**Docker（Web，默认端口 8400）** 与 **桌面安装版**（从 [JavScribe Releases](https://github.com/JavdBviewed/JavScribe/releases) 核对对应 `client-v*` 的实际资产，装哪台电脑，扫描与写回就以哪台为准）。Web 与桌面共用 `client-v*`，没有单独的 `web-v*` tag。
 
-### Docker · 形态一：单机（客户端与服务同机，一个 compose）
+### Docker · 形态一：服务与 Web 同机
 
-```yaml
-# docker-compose.yml（节选）
-services:
-  service:                    # JavScribe 字幕服务
-    image: javscribe:latest
-    # …模型卷、监听目录、GPU 直通（见 JavScribe 仓库 docker/）
-    environment:
-      JAVSCRIBE_API_KEY: "xxxx"
-  web:
-    image: javscribe-web:latest
-    environment:
-      JAV_ENGINES: "本地服务=http://service:8300"   # compose 网络内寻址
-    ports: ["8400:8400"]
-    volumes: [javweb-data:/data]
-volumes: {javweb-data: {}}
-```
+不要使用旧文档中的 `image: javscribe:latest` 单文件节选：它既不是固定 tag 服务端 Compose 的镜像名，也没有模型、数据卷和 GPU 配置，不能直接部署。分别使用 Serve 源码 tag 的 `docker/docker-compose.yml` 与 Client 源码 tag 的 `web/docker/docker-compose.yml`；两者是**独立 Compose 项目**，即使部署在同一宿主机也不会自动共享 Docker 网络。按上文先配置并构建 Serve，再配置和构建 Web；Web 的 `JAV_ENGINES` 要填写**Web 容器能够访问**的 Serve 地址，不要用 `127.0.0.1:8300` 指代另一个容器。
 
-> 无外网部署机：本地 `docker compose up -d --build`（或 `docker build`）构建镜像即可，
-> 运行期不需要外网（更新检查失败会静默降级，不影响使用）。
+固定 `client-v0.2.66` 的 Web Compose 从 `web/docker/Dockerfile` **本地构建** `javscribe-web:latest`，通过 `JAV_WEB_DATA_DIR` 持久化服务登记表，并映射 8400 和可配置的 8443 TLS 端口。该 `javscribe-web:latest` 是本机生成的镜像名，不代表存在独立发布的 Web 镜像。部署机目录扫描读取的是**Web 客户端部署机**可访问的路径，和 Serve 的模型卷、浏览器电脑本地目录是三种不同位置；路径见[工作台](./workbench)。
 
 ### Docker · 形态二：多机（一个客户端 + N 个服务端）
 
 ```bash
-cd JavScribe/web
-JAV_ENGINES="服务A=http://<IP_A>:8300,服务B=http://<IP_B>:8300" \
+# 在已检出 client-v0.2.66 的独立 Web 客户端源码目录
+# 服务地址须改为 Web 容器实际可访问的内网/VPN 地址
+JAV_ENGINES="服务A=http://<服务A内网地址>:8300,服务B=http://<服务B内网地址>:8300" \
   docker compose -f docker/docker-compose.yml up -d --build
-# 浏览器打开 http://<本机>:8400
 ```
 
 | 变量 | 默认 | 说明 |
@@ -266,13 +239,13 @@ JAV_ENGINES="服务A=http://<IP_A>:8300,服务B=http://<IP_B>:8300" \
 | `JAV_ENGINES` | 空 | 出厂服务表：`名称=URL` 逗号分隔；启动时幂等合并，页面可再增删改 |
 | `JAV_WEB_PORT` | `8400` | 客户端监听端口 |
 | `JAV_POLL_INTERVAL_S` | `5` | 轮询服务端间隔（秒） |
-| `JAV_UPLOAD_MAX_GB` | `10` | 整片上传链路的大小上限 |
-| `JAV_DATA_DIR` | `/data` | 持久化目录（数据卷：服务登记表 + 各服务 API Key + 本机派发记录） |
+| `JAV_UPLOAD_MAX_GB` | `10` | 客户端上传请求的大小限制；通常上传抽取的音轨 |
+| `JAV_WEB_DATA_DIR` | `/opt/jav-scribe-web/data` | Web Compose 的宿主机数据目录，挂载到容器 `/data`，保存服务登记表等 |
+| `JAV_WEB_TLS_PORT` | `8443` | Web Compose 的 HTTPS 端口（自签证书），浏览器写回源目录能力需安全上下文 |
 
 ### 桌面安装版
 
-- 从 JavScribe 仓库 GitHub Release（`client-vX.Y.Z`）下载对应平台包：
-  Windows 安装包/便携版、Linux AppImage/deb
+- 从 [JavScribe Releases](https://github.com/JavdBviewed/JavScribe/releases) 中核对 `client-v*` 的实际平台资产和发布说明；`client-v0.2.66` 已有公开正式 Release
 - 装好后打开即本页面同款界面；「扫描目录」扫描**本电脑**目录，
   完成后字幕直接写回本机影片旁，无需浏览器
 - 多个客户端（Web/桌面）可以登记同一批服务端；他端提交的任务以「他端」标记显示
@@ -305,8 +278,7 @@ nvidia-smi                       # 处理任务时显存约 4–6G
 
 ## 7. 安全速览
 
-- 8300 的**进度与上传接口无鉴权**（`PUT /upload` 接收音频并提交、`GET /jobs` 暴露任务与路径）：
-  只暴露给内网/VPN；必须对外时前面加一层带鉴权的反向代理
-- `GET/PUT /config` 与 `GET /scan` / `POST /scan/submit` 有 `X-Api-Key` 鉴权；
-  `/scan` 可列举**服务机器上的任意目录**，敏感性与改配置相当，**切勿对外暴露**
+- **`JAVSCRIBE_API_KEY` 不是全站鉴权**：固定 `serve-v0.2.16` 源码中，`/config`、`/scan` 等特定管理/扫描接口校验 `X-Api-Key`；进度、上传等接口不受这个 Key 保护，可能暴露任务路径或允许提交音轨。
+- 8300 服务端和 8400/8443 工作台只对可信内网/VPN 开放；如必须跨公网访问，在入口另加带身份认证的反向代理、HTTPS 与访问限制。不要仅因设置了 Key 就把端口直接暴露到公网。
+- `/scan` 涉及目录读取，尤其当 Compose 还映射宿主机根目录时，应额外收紧卷挂载和网络访问。不要在页面示例、截图、公开日志或仓库中展示真实 Key。
 - 客户端的详细接口与安全边界见 [API 参考](./api)

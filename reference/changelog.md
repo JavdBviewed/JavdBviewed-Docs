@@ -1,37 +1,61 @@
 # 版本发布
 
-本页将 GitHub Releases 的版本历史整理为站内可浏览文档，便于查看最近更新节奏、当前版本与下载入口。
+本页保留浏览器扩展的历史时间线，并记录各产品截至指定日期核实的公开发布状态。它不是实时更新页；安装前应再次核对对应产品的公开 Release 和资产。
 
-> 完整发布记录仍以 GitHub Releases 为准：<https://github.com/JavdBviewed/JavdBviewed/releases>
+扩展发布在 [JavdBviewed 源仓 Releases](https://github.com/JavdBviewed/JavdBviewed/releases)；Windows 桌面端、Android 和 Cloud 在 [JavdBviewed 集中发布仓 Releases](https://github.com/JavdBviewed/JavdBviewed-release/releases)；JavScribe 的客户端和服务端在 [JavScribe Releases](https://github.com/JavdBviewed/JavScribe/releases) 分别核对。
 
-## 当前版本
+## 已核对的发布状态
 
-- 文档整理时间：2026-05-05
-- 当前代码版本：`1.19.1`
-- 最近标签版本：`v1.19.1.5`
-- 发布主页：<https://github.com/JavdBviewed/JavdBviewed/releases>
+扩展、桌面端、Android 和 JavScribe 于 **2026-11-06** 核对；Android 安装包于 **2026-11-07** 复核。Cloud 按 **2026-11-07** 核实的正式发布记录。以下是当时已核实的状态，不能当作此后永远不变的“最新版”。
+
+| 产品 | 当时可核实的公开发布 | 下载或说明 |
+| --- | --- | --- |
+| 浏览器扩展 | `v2.1.3`，正式 Release，提供扩展 ZIP | [源仓 v2.1.3 Release](https://github.com/JavdBviewed/JavdBviewed/releases/tag/v2.1.3) |
+| Windows 桌面端 | `desktop-v1.0.0`，Windows x64 安装包 | [桌面端安装](/desktop/install) |
+| Android | `mobile-v39`，产品版本 `1.0.2`，公开 APK 已核可下载 | [Android 安装](/mobile/install) |
+| JavdBviewed-Cloud | `cloud-v1.2.9`，正式 Release 及容器镜像已核实 | [Cloud 备份与升级](/cloud/backup-upgrade) |
+| JavScribe 客户端 | `client-v0.2.66`，公开正式 Release | [JavScribe 工作台](/javscribe/workbench) |
+| JavScribe 服务端 | `serve-v0.2.15` 是公开**预发布**；`serve-v0.2.16` 只有源码 tag，未核到对应公开安装包 | [JavScribe 部署](/javscribe/deployment) |
+
+Android 的 `mobile-v42` / `1.0.3` 在发布清单及说明中存在，但核对时公开 Release 和 APK 均不可获取；**不能把清单状态当作可下载安装的证据**。`1.0.3` 说明中的本地下载源聚合与 `1.0.2` 已核可用功能分开看，详见[功能范围](/reference/features)。
+
+Cloud `1.2.9` 升级前须备份完整数据目录及部署配置，**数据库与 `vault.key` 应一起备份和恢复**；升级后登录管理台一次迁移旧会话。回退旧版不能读取 v2 密文，应使用升级前的完整备份，步骤见[Cloud 备份与升级](/cloud/backup-upgrade)。
 
 ## 如何更新
 
-1. 打开 GitHub Releases 页面
-2. 下载最新的 `javdb-extension-v*.zip`
-3. 解压到固定目录
-4. 进入 `chrome://extensions/` 或 `edge://extensions/`
-5. 重新加载已解压扩展
+浏览器扩展的安装包请从[扩展源仓 Releases](https://github.com/JavdBviewed/JavdBviewed/releases)选取对应的正式 `javdb-extension-v*.zip`，按**该版本**发布说明解压到固定目录，再到 `chrome://extensions/` 或 `edge://extensions/` 加载或重新加载。解压密码不要跨版本套用；具体步骤见[快速开始](/guide/quick-start)。
+
+从 1.x 跨扩展 ID 升级到 2.x 时，本地数据不会自动迁移。先在旧版导出备份，**不要先卸载旧版**，再按[历史 1.x 到 2.x 数据迁移](/guide/upgrade-v2)导入。桌面端、Android、Cloud 和 JavScribe 不适用这套浏览器扩展加载步骤，请分别查阅[下载与更新](/download/)。
 
 ## 版本说明
 
-- `version.json` 中维护扩展主版本号，例如 `1.19.1`
-- Git 标签额外带有构建号，例如 `v1.19.1.5`
-- 从仓库标签观察，版本格式通常为 `主版本.次版本.修订号.构建号`
+- 浏览器扩展：早期标签有 `v1.19.1.5` 这样的四段格式；已核正式版采用 `v2.1.3`，扩展 ZIP 文件名还可能包含独立构建号。不能将旧四段格式当成所有产品通用规则。
+- 桌面端：`desktop-v1.0.0`，标签带产品前缀；已核包适用于 Windows x64。
+- Android：`mobile-v39` 是发布标签/构建号，对应产品显示版本 `1.0.2`；`mobile-v42` 清单中的 `1.0.3` 安装包尚未核到公开可用。
+- Cloud：`cloud-v1.2.9` 与服务端产品版本对应；发布说明与镜像状态需另行核对。
+- JavScribe：客户端 `client-v...`、服务端 `serve-v...` 分别发布，源码 tag 不等于公开 Release，预发布不能当稳定安装包。
 
-## 最近发布记录
+## 浏览器扩展历史记录
+
+以下旧时间线原样保留用于查找历史版本，不代表这些版本仍为当前正式版。
+
+### 2026-11 核对
+
+| 核对日期 | 版本 | 说明 |
+| --- | --- | --- |
+| 2026-11-06 | `v2.1.3` | 源仓正式 Release 已核实；扩展 ZIP 以当次 Release 说明为准 |
+
+### 2026-08
+
+| 日期 | 版本 | 说明 |
+| --- | --- | --- |
+| 2026-08-06 | `v2.0.0` | 1.x 到 2.x 跨扩展 ID 迁移的历史记录；安装前先导出旧版数据 |
 
 ### 2026-05
 
 | 日期 | 版本 | 说明 |
 | --- | --- | --- |
-| 2026-05-05 | `v1.19.1.5` | 1.19.1 系列最新发布 |
+| 2026-05-05 | `v1.19.1.5` | 当时记录的 1.19.1 系列版本 |
 | 2026-05-04 | `v1.19.0.34` | 1.19.0 系列发布 |
 
 ### 2026-04
